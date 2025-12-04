@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Survey, Question, QuestionType } from '../types';
 import { generateSurveyFromGoal } from '../services/geminiService';
 import { Button } from './ui/Button';
-import { Plus, Trash2, Wand2, ArrowRight, Table, LayoutList } from 'lucide-react';
+import { Plus, Trash2, Wand2, ArrowRight, Table, LayoutList, Settings2, Users, Globe } from 'lucide-react';
 
 interface BuilderProps {
   onSurveyCreated: (survey: Survey) => void;
@@ -12,21 +12,21 @@ interface BuilderProps {
 
 const TEMPLATES = [
   {
-    label: "Feedback Form",
-    icon: "💬",
+    label: "Customer Feedback",
     prompt: "Create a customer feedback survey for a mobile application, focusing on usability, features, and net promoter score."
   },
   {
     label: "Event Registration",
-    icon: "🎉",
     prompt: "Create an event registration survey for a tech conference, asking for dietary restrictions, workshop preferences, and travel details."
   },
   {
-    label: "Public Health (Malaria)",
-    icon: "🏥",
+    label: "Malaria Awareness (Public Health)",
     prompt: "Create a public health survey to assess malaria awareness, prevention habits (bed nets), and recent symptoms in a rural community."
   }
 ];
+
+const DOMAINS = ["General Inquiry", "Scientific Research", "Medical / Clinical", "Political Polling", "Market Research", "Classic Survey"];
+const TONES = ["Neutral & Objective", "Empathetic & Warm", "Formal & Academic", "Casual & Engaging"];
 
 export const Builder: React.FC<BuilderProps> = ({ onSurveyCreated, existingSurvey, onPreview }) => {
   const [prompt, setPrompt] = useState('');
@@ -34,14 +34,28 @@ export const Builder: React.FC<BuilderProps> = ({ onSurveyCreated, existingSurve
   const [survey, setSurvey] = useState<Survey | null>(existingSurvey || null);
   const [error, setError] = useState<string | null>(null);
 
+  // Context State
+  const [domain, setDomain] = useState(DOMAINS[0]);
+  const [tone, setTone] = useState(TONES[0]);
+  const [audience, setAudience] = useState("");
+
   const handleGenerate = async (overridePrompt?: string) => {
     const promptToUse = overridePrompt || prompt;
     if (!promptToUse.trim()) return;
     
     setIsGenerating(true);
     setError(null);
+    
+    // Construct a rich prompt with context
+    const fullPrompt = `
+      Research Goal: "${promptToUse}"
+      Context & Domain: ${domain}
+      Target Audience: ${audience || "General Population"}
+      Desired Tone: ${tone}
+    `;
+
     try {
-      const generatedSurvey = await generateSurveyFromGoal(promptToUse);
+      const generatedSurvey = await generateSurveyFromGoal(fullPrompt);
       setSurvey(generatedSurvey);
       onSurveyCreated(generatedSurvey);
     } catch (err) {
@@ -71,23 +85,18 @@ export const Builder: React.FC<BuilderProps> = ({ onSurveyCreated, existingSurve
 
   if (!survey) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[70vh] px-4 max-w-2xl mx-auto text-center animate-in fade-in zoom-in duration-500">
-        <div className="bg-stone-100 p-4 rounded-full mb-6">
-          <Wand2 className="w-8 h-8 text-stone-600" />
-        </div>
-        <h1 className="text-4xl font-serif font-medium text-stone-900 mb-4">
+      <div className="flex flex-col items-center justify-center min-h-[70vh] px-4 max-w-4xl mx-auto text-center animate-in fade-in zoom-in duration-500">
+        
+        <h1 className="text-5xl font-serif font-medium text-stone-900 mb-6 tracking-tight">
           What do you want to discover?
         </h1>
-        <p className="text-stone-500 text-lg mb-8 max-w-lg">
-          Describe your research goal. Delphi will draft a complete survey with matrices, scales, and logic in seconds.
-        </p>
         
-        <div className="w-full relative mb-12">
+        <div className="w-full relative mb-8 bg-white p-2 rounded-3xl border-2 border-stone-200 shadow-sm focus-within:border-stone-900 focus-within:ring-4 focus-within:ring-stone-100 transition-all">
           <textarea 
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
-            placeholder="e.g., I want to understand why Gen Z prefers thrifting over fast fashion..."
-            className="w-full p-4 pr-14 text-lg border-2 border-stone-200 rounded-xl focus:border-stone-900 focus:ring-0 outline-none resize-none shadow-sm transition-all min-h-[120px]"
+            placeholder="Describe your research question..."
+            className="w-full p-6 text-3xl font-serif text-stone-900 placeholder-stone-300 bg-transparent outline-none resize-none min-h-[160px]"
             onKeyDown={(e) => {
               if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
@@ -95,33 +104,71 @@ export const Builder: React.FC<BuilderProps> = ({ onSurveyCreated, existingSurve
               }
             }}
           />
-          <div className="absolute bottom-4 right-4">
-            <Button 
-              onClick={() => handleGenerate()} 
-              disabled={!prompt.trim()} 
-              isLoading={isGenerating}
-              size="sm"
-            >
-              Generate
-            </Button>
+          
+          {/* Intricate Configuration Bar */}
+          <div className="flex flex-wrap items-center gap-4 border-t border-stone-100 pt-4 px-4 pb-2">
+            <div className="flex items-center gap-2 bg-stone-50 px-3 py-2 rounded-lg border border-stone-200">
+                <Settings2 className="w-4 h-4 text-stone-400" />
+                <select 
+                    value={domain} 
+                    onChange={(e) => setDomain(e.target.value)}
+                    className="bg-transparent text-sm font-medium text-stone-700 outline-none cursor-pointer hover:text-stone-900"
+                >
+                    {DOMAINS.map(d => <option key={d} value={d}>{d}</option>)}
+                </select>
+            </div>
+
+            <div className="flex items-center gap-2 bg-stone-50 px-3 py-2 rounded-lg border border-stone-200">
+                <Users className="w-4 h-4 text-stone-400" />
+                <input 
+                    value={audience}
+                    onChange={(e) => setAudience(e.target.value)}
+                    placeholder="Target Audience (e.g. US Adults)"
+                    className="bg-transparent text-sm font-medium text-stone-700 outline-none placeholder-stone-400 w-48"
+                />
+            </div>
+
+            <div className="flex items-center gap-2 bg-stone-50 px-3 py-2 rounded-lg border border-stone-200">
+                <Globe className="w-4 h-4 text-stone-400" />
+                <select 
+                    value={tone} 
+                    onChange={(e) => setTone(e.target.value)}
+                    className="bg-transparent text-sm font-medium text-stone-700 outline-none cursor-pointer hover:text-stone-900"
+                >
+                    {TONES.map(t => <option key={t} value={t}>{t}</option>)}
+                </select>
+            </div>
+
+            <div className="ml-auto">
+                <Button 
+                    onClick={() => handleGenerate()} 
+                    disabled={!prompt.trim()} 
+                    isLoading={isGenerating}
+                    size="lg"
+                    className="rounded-xl px-8"
+                >
+                    Generate Survey
+                </Button>
+            </div>
           </div>
         </div>
+        
         {error && <p className="text-red-500 mb-4">{error}</p>}
 
-        <div className="w-full border-t border-stone-200 pt-8">
-            <p className="text-xs font-semibold tracking-wider text-stone-400 uppercase mb-4">Quick Start Templates</p>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {/* Minimal Templates */}
+        <div className="w-full max-w-3xl mt-8">
+            <p className="text-xs font-semibold tracking-wider text-stone-400 uppercase mb-4">Start from a template</p>
+            <div className="flex flex-wrap gap-3 justify-center">
                 {TEMPLATES.map((t, i) => (
                     <button 
                         key={i}
                         onClick={() => {
                             setPrompt(t.prompt);
-                            handleGenerate(t.prompt);
+                            // We don't auto-submit so the user can tweak the intricate settings first
                         }}
-                        className="flex flex-col items-center p-4 bg-white border border-stone-200 rounded-xl hover:border-stone-900 hover:shadow-md transition-all text-left group"
+                        className="px-5 py-3 bg-white border border-stone-200 rounded-full hover:border-stone-900 hover:bg-stone-50 transition-all text-sm font-medium text-stone-600 hover:text-stone-900"
                     >
-                        <span className="text-2xl mb-2 grayscale group-hover:grayscale-0 transition-all">{t.icon}</span>
-                        <span className="font-medium text-stone-800 text-sm">{t.label}</span>
+                        {t.label}
                     </button>
                 ))}
             </div>
