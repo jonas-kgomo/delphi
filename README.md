@@ -1,7 +1,8 @@
 # Delphi - Semantic AI Survey Builder & Interviewer
 
+ 
 
-!img[https://github.com/jonas-kgomo/delphi/blob/main/imagesL.png] 
+![Home Page]([https://cdn.path.to/some/image.jpg](https://github.com/jonas-kgomo/delphi/blob/main/imagesL.png) "Input for Delphi")
 
 <div align="center"> 
  
