@@ -2,8 +2,7 @@
 
 <div align="center"> 
 
-<img width="892" height="1121" alt="Screenshot 2025-12-04 at 21 56 41" src="https://github.com/user-attachments/assets/902a76d4-3d95-4b0e-90c0-ceacc2a18f6d" />
-<img width="1054" height="1273" alt="Screenshot 2025-12-04 at 21 57 02" src="https://github.com/user-attachments/assets/13dba786-a579-440b-8551-f146c88bb4e3" />
+<img width="892" height="1121" alt="Screenshot 2025-12-04 at 21 56 41" src="https://github.com/user-attachments/assets/902a76d4-3d95-4b0e-90c0-ceacc2a18f6d" /> 
 </div>
 
 Delphi is a next-generation survey platform that uses Generative AI to bridge the gap between abstract research goals and structured data collection. Instead of manually dragging and dropping fields, you simply tell Delphi what you want to learn, and it builds a methodology-sound survey for you. It then conducts these surveys via a conversational, empathetic AI interface.

@@ -180,7 +180,7 @@ export const Interviewer: React.FC<InterviewerProps> = ({ survey, onExit }) => {
                     <button
                         key={i}
                         onClick={() => handleSend(opt)}
-                        className="w-full text-left px-4 py-3 rounded-xl border border-stone-200 hover:border-stone-900 hover:bg-stone-50 transition-all text-stone-800"
+                        className="w-full text-left px-4 py-3 rounded-xl border border-stone-200 hover:border-stone-900 hover:bg-stone-900 hover:text-white transition-all text-stone-800"
                     >
                         {opt}
                     </button>

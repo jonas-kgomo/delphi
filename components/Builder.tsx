@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Survey, Question, QuestionType } from '../types';
 import { generateSurveyFromGoal } from '../services/geminiService';
 import { Button } from './ui/Button';
-import { Plus, Trash2, Wand2, ArrowRight, Table, LayoutList, Settings2, Users, Globe } from 'lucide-react';
+import { Plus, Trash2, Wand2, ArrowRight, Table, LayoutList, Settings2, Users, Globe, MapPin } from 'lucide-react';
 
 interface BuilderProps {
   onSurveyCreated: (survey: Survey) => void;
@@ -38,6 +38,7 @@ export const Builder: React.FC<BuilderProps> = ({ onSurveyCreated, existingSurve
   const [domain, setDomain] = useState(DOMAINS[0]);
   const [tone, setTone] = useState(TONES[0]);
   const [audience, setAudience] = useState("");
+  const [region, setRegion] = useState("");
 
   const handleGenerate = async (overridePrompt?: string) => {
     const promptToUse = overridePrompt || prompt;
@@ -51,6 +52,7 @@ export const Builder: React.FC<BuilderProps> = ({ onSurveyCreated, existingSurve
       Research Goal: "${promptToUse}"
       Context & Domain: ${domain}
       Target Audience: ${audience || "General Population"}
+      Region/Location: ${region || "Global"}
       Desired Tone: ${tone}
     `;
 
@@ -85,7 +87,7 @@ export const Builder: React.FC<BuilderProps> = ({ onSurveyCreated, existingSurve
 
   if (!survey) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[70vh] px-4 max-w-4xl mx-auto text-center animate-in fade-in zoom-in duration-500">
+      <div className="flex flex-col items-center justify-center min-h-[70vh] px-4 max-w-5xl mx-auto text-center animate-in fade-in zoom-in duration-500">
         
         <h1 className="text-5xl font-serif font-medium text-stone-900 mb-6 tracking-tight">
           What do you want to discover?
@@ -96,7 +98,7 @@ export const Builder: React.FC<BuilderProps> = ({ onSurveyCreated, existingSurve
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
             placeholder="Describe your research question..."
-            className="w-full p-6 text-3xl font-serif text-stone-900 placeholder-stone-300 bg-transparent outline-none resize-none min-h-[160px]"
+            className="w-full p-6 text-4xl font-serif text-stone-900 placeholder-stone-300 bg-transparent outline-none resize-none min-h-[200px]"
             onKeyDown={(e) => {
               if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
@@ -106,7 +108,7 @@ export const Builder: React.FC<BuilderProps> = ({ onSurveyCreated, existingSurve
           />
           
           {/* Intricate Configuration Bar */}
-          <div className="flex flex-wrap items-center gap-4 border-t border-stone-100 pt-4 px-4 pb-2">
+          <div className="flex flex-wrap items-center gap-3 border-t border-stone-100 pt-4 px-4 pb-2">
             <div className="flex items-center gap-2 bg-stone-50 px-3 py-2 rounded-lg border border-stone-200">
                 <Settings2 className="w-4 h-4 text-stone-400" />
                 <select 
@@ -123,8 +125,18 @@ export const Builder: React.FC<BuilderProps> = ({ onSurveyCreated, existingSurve
                 <input 
                     value={audience}
                     onChange={(e) => setAudience(e.target.value)}
-                    placeholder="Target Audience (e.g. US Adults)"
-                    className="bg-transparent text-sm font-medium text-stone-700 outline-none placeholder-stone-400 w-48"
+                    placeholder="Audience (e.g. Students)"
+                    className="bg-transparent text-sm font-medium text-stone-700 outline-none placeholder-stone-400 w-40"
+                />
+            </div>
+
+            <div className="flex items-center gap-2 bg-stone-50 px-3 py-2 rounded-lg border border-stone-200">
+                <MapPin className="w-4 h-4 text-stone-400" />
+                <input 
+                    value={region}
+                    onChange={(e) => setRegion(e.target.value)}
+                    placeholder="Region (e.g. California)"
+                    className="bg-transparent text-sm font-medium text-stone-700 outline-none placeholder-stone-400 w-40"
                 />
             </div>
 
