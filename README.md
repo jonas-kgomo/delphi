@@ -1,9 +1,10 @@
 # Delphi - Semantic AI Survey Builder & Interviewer
 
+
+!img[https://github.com/jonas-kgomo/delphi/blob/main/imagesL.png] 
+
 <div align="center"> 
-
-
-<img width="500"   alt="Screenshot 2025-12-04 at 21 56 41" src="https://github.com/jonas-kgomo/delphi/blob/main/imagesL.png" /> 
+ 
 <img width="500"   alt="Screenshot 2025-12-04 at 21 56 41" src="https://github.com/user-attachments/assets/902a76d4-3d95-4b0e-90c0-ceacc2a18f6d" /> 
 </div>
 
