@@ -1,13 +1,19 @@
-import React, { useState } from 'react';
-import { Survey, Question, QuestionType } from '../types';
+import React, { useState, useEffect } from 'react';
+import { Survey, Question, QuestionType, AIModelType } from '../types';
 import { generateSurveyFromGoal } from '../services/geminiService';
 import { Button } from './ui/Button';
-import { Plus, Trash2, Wand2, ArrowRight, Table, LayoutList, Settings2, Users, Globe, MapPin } from 'lucide-react';
+import { Plus, Trash2, ArrowRight, Table, LayoutList, Layers, Users, Globe, MapPin, SquareMousePointer } from 'lucide-react';
 
 interface BuilderProps {
   onSurveyCreated: (survey: Survey) => void;
   existingSurvey?: Survey | null;
   onPreview: (survey: Survey) => void;
+  model: AIModelType;
+  /** When false, the composer stays usable but Generate asks for sign-in */
+  isAuthenticated?: boolean;
+  onAuthRequired?: () => void;
+  /** Hide the page title when embedded on the landing page */
+  embedded?: boolean;
 }
 
 const TEMPLATES = [
@@ -20,15 +26,27 @@ const TEMPLATES = [
     prompt: "Create an event registration survey for a tech conference, asking for dietary restrictions, workshop preferences, and travel details."
   },
   {
-    label: "Malaria Awareness (Public Health)",
+    label: "Malaria Awareness",
     prompt: "Create a public health survey to assess malaria awareness, prevention habits (bed nets), and recent symptoms in a rural community."
+  },
+  {
+    label: "A/B Testing (Tournament)",
+    prompt: "Create an A/B test survey comparing 4 digital health tools. Determine the absolute favorite by running an immersive pairwise A/B scenario."
   }
 ];
 
 const DOMAINS = ["General Inquiry", "Scientific Research", "Medical / Clinical", "Political Polling", "Market Research", "Classic Survey"];
 const TONES = ["Neutral & Objective", "Empathetic & Warm", "Formal & Academic", "Casual & Engaging"];
 
-export const Builder: React.FC<BuilderProps> = ({ onSurveyCreated, existingSurvey, onPreview }) => {
+export const Builder: React.FC<BuilderProps> = ({
+  onSurveyCreated,
+  existingSurvey,
+  onPreview,
+  model,
+  isAuthenticated = true,
+  onAuthRequired,
+  embedded = false,
+}) => {
   const [prompt, setPrompt] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [survey, setSurvey] = useState<Survey | null>(existingSurvey || null);
@@ -40,32 +58,88 @@ export const Builder: React.FC<BuilderProps> = ({ onSurveyCreated, existingSurve
   const [audience, setAudience] = useState("");
   const [region, setRegion] = useState("");
 
-  const handleGenerate = async (overridePrompt?: string) => {
-    const promptToUse = overridePrompt || prompt;
-    if (!promptToUse.trim()) return;
-    
+  // Sync when parent selects a published survey (new draft remounts via key)
+  useEffect(() => {
+    if (!existingSurvey) return;
+    if (survey?.id === existingSurvey.id) return;
+    setSurvey(existingSurvey);
+  }, [existingSurvey, survey?.id]);
+
+  const runGenerate = async (opts: {
+    prompt: string;
+    domain: string;
+    tone: string;
+    audience: string;
+    region: string;
+  }) => {
     setIsGenerating(true);
     setError(null);
-    
-    // Construct a rich prompt with context
     const fullPrompt = `
-      Research Goal: "${promptToUse}"
-      Context & Domain: ${domain}
-      Target Audience: ${audience || "General Population"}
-      Region/Location: ${region || "Global"}
-      Desired Tone: ${tone}
+      Research Goal: "${opts.prompt}"
+      Context & Domain: ${opts.domain}
+      Target Audience: ${opts.audience || 'General Population'}
+      Region/Location: ${opts.region || 'Global'}
+      Desired Tone: ${opts.tone}
     `;
-
     try {
-      const generatedSurvey = await generateSurveyFromGoal(fullPrompt);
+      const generatedSurvey = await generateSurveyFromGoal(fullPrompt, model);
       setSurvey(generatedSurvey);
       onSurveyCreated(generatedSurvey);
-    } catch (err) {
+    } catch {
       setError("We couldn't generate the survey. Please try clarifying your goal.");
     } finally {
       setIsGenerating(false);
     }
   };
+
+  const handleGenerate = async (overridePrompt?: string) => {
+    const promptToUse = overridePrompt || prompt;
+    if (!promptToUse.trim()) return;
+
+    if (!isAuthenticated) {
+      try {
+        sessionStorage.setItem(
+          'delphi_pending_compose',
+          JSON.stringify({ prompt: promptToUse, domain, tone, audience, region })
+        );
+      } catch { /* ignore */ }
+      onAuthRequired?.();
+      return;
+    }
+
+    await runGenerate({ prompt: promptToUse, domain, tone, audience, region });
+  };
+
+  // Resume compose after sign-in from landing
+  useEffect(() => {
+    if (!isAuthenticated || survey || isGenerating) return;
+    try {
+      const raw = sessionStorage.getItem('delphi_pending_compose');
+      if (!raw) return;
+      const pending = JSON.parse(raw) as {
+        prompt?: string;
+        domain?: string;
+        tone?: string;
+        audience?: string;
+        region?: string;
+      };
+      sessionStorage.removeItem('delphi_pending_compose');
+      if (!pending.prompt?.trim()) return;
+      setPrompt(pending.prompt);
+      if (pending.domain) setDomain(pending.domain);
+      if (pending.tone) setTone(pending.tone);
+      if (pending.audience != null) setAudience(pending.audience);
+      if (pending.region != null) setRegion(pending.region);
+      void runGenerate({
+        prompt: pending.prompt,
+        domain: pending.domain || DOMAINS[0],
+        tone: pending.tone || TONES[0],
+        audience: pending.audience || '',
+        region: pending.region || '',
+      });
+    } catch { /* ignore */ }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- run once when auth flips on
+  }, [isAuthenticated]);
 
   const updateQuestion = (id: string, updates: Partial<Question>) => {
     if (!survey) return;
@@ -87,65 +161,70 @@ export const Builder: React.FC<BuilderProps> = ({ onSurveyCreated, existingSurve
 
   if (!survey) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[70vh] px-4 max-w-5xl mx-auto text-center animate-in fade-in zoom-in duration-500">
+      <div className={`w-full ${embedded ? '' : 'max-w-4xl mx-auto'}`}>
+        <div className="flex flex-col items-center px-2 w-full mx-auto text-center">
+        {!embedded && (
+          <h1 className="font-serif text-3xl sm:text-4xl md:text-5xl font-semibold text-ink-800 mb-6 tracking-tight">
+            What do you want the record to hold?
+          </h1>
+        )}
         
-        <h1 className="text-5xl font-serif font-medium text-stone-900 mb-6 tracking-tight">
-          What do you want to discover?
-        </h1>
-        
-        <div className="w-full relative mb-8 bg-white p-2 rounded-3xl border-2 border-stone-200 shadow-sm focus-within:border-stone-900 focus-within:ring-4 focus-within:ring-stone-100 transition-all">
-          <textarea 
-            value={prompt}
-            onChange={(e) => setPrompt(e.target.value)}
-            placeholder="Describe your research question..."
-            className="w-full p-6 text-4xl font-serif text-stone-900 placeholder-stone-300 bg-transparent outline-none resize-none min-h-[200px]"
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                handleGenerate();
-              }
-            }}
-          />
+        <div className="w-full relative mb-6 bg-white p-2 rounded-3xl border-2 border-ink-200 shadow-sm focus-within:border-ink-900 focus-within:ring-4 focus-within:ring-ink-100 transition-all">
+          <div className="flex items-start gap-3 px-6 pt-5">
+            <SquareMousePointer className="w-5 h-5 text-ink-300 mt-2 shrink-0" strokeWidth={1.75} />
+            <textarea 
+              value={prompt}
+              onChange={(e) => setPrompt(e.target.value)}
+              placeholder="Describe the conversation you need to have…"
+              className="w-full pb-6 text-2xl sm:text-3xl font-serif text-ink-900 placeholder-ink-300 bg-transparent outline-none resize-none min-h-[140px]"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  void handleGenerate();
+                }
+              }}
+            />
+          </div>
           
           {/* Intricate Configuration Bar */}
-          <div className="flex flex-wrap items-center gap-3 border-t border-stone-100 pt-4 px-4 pb-2">
-            <div className="flex items-center gap-2 bg-stone-50 px-3 py-2 rounded-lg border border-stone-200">
-                <Settings2 className="w-4 h-4 text-stone-400" />
+          <div className="flex flex-wrap items-center gap-3 border-t border-ink-100 pt-4 px-4 pb-2">
+            <div className="flex items-center gap-2 bg-ink-50 px-3 py-2 rounded-lg border border-ink-200">
+                <Layers className="w-4 h-4 text-ink-400" />
                 <select 
                     value={domain} 
                     onChange={(e) => setDomain(e.target.value)}
-                    className="bg-transparent text-sm font-medium text-stone-700 outline-none cursor-pointer hover:text-stone-900"
+                    className="bg-transparent text-sm font-medium text-ink-700 outline-none cursor-pointer hover:text-ink-900"
                 >
                     {DOMAINS.map(d => <option key={d} value={d}>{d}</option>)}
                 </select>
             </div>
 
-            <div className="flex items-center gap-2 bg-stone-50 px-3 py-2 rounded-lg border border-stone-200">
-                <Users className="w-4 h-4 text-stone-400" />
+            <div className="flex items-center gap-2 bg-ink-50 px-3 py-2 rounded-lg border border-ink-200">
+                <Users className="w-4 h-4 text-ink-400" />
                 <input 
                     value={audience}
                     onChange={(e) => setAudience(e.target.value)}
                     placeholder="Audience (e.g. Students)"
-                    className="bg-transparent text-sm font-medium text-stone-700 outline-none placeholder-stone-400 w-40"
+                    className="bg-transparent text-sm font-medium text-ink-700 outline-none placeholder-ink-400 w-40"
                 />
             </div>
 
-            <div className="flex items-center gap-2 bg-stone-50 px-3 py-2 rounded-lg border border-stone-200">
-                <MapPin className="w-4 h-4 text-stone-400" />
+            <div className="flex items-center gap-2 bg-ink-50 px-3 py-2 rounded-lg border border-ink-200">
+                <MapPin className="w-4 h-4 text-ink-400" />
                 <input 
                     value={region}
                     onChange={(e) => setRegion(e.target.value)}
                     placeholder="Region (e.g. California)"
-                    className="bg-transparent text-sm font-medium text-stone-700 outline-none placeholder-stone-400 w-40"
+                    className="bg-transparent text-sm font-medium text-ink-700 outline-none placeholder-ink-400 w-40"
                 />
             </div>
 
-            <div className="flex items-center gap-2 bg-stone-50 px-3 py-2 rounded-lg border border-stone-200">
-                <Globe className="w-4 h-4 text-stone-400" />
+            <div className="flex items-center gap-2 bg-ink-50 px-3 py-2 rounded-lg border border-ink-200">
+                <Globe className="w-4 h-4 text-ink-400" />
                 <select 
                     value={tone} 
                     onChange={(e) => setTone(e.target.value)}
-                    className="bg-transparent text-sm font-medium text-stone-700 outline-none cursor-pointer hover:text-stone-900"
+                    className="bg-transparent text-sm font-medium text-ink-700 outline-none cursor-pointer hover:text-ink-900"
                 >
                     {TONES.map(t => <option key={t} value={t}>{t}</option>)}
                 </select>
@@ -153,44 +232,51 @@ export const Builder: React.FC<BuilderProps> = ({ onSurveyCreated, existingSurve
 
             <div className="ml-auto">
                 <Button 
-                    onClick={() => handleGenerate()} 
+                    onClick={() => void handleGenerate()} 
                     disabled={!prompt.trim()} 
                     isLoading={isGenerating}
                     size="lg"
                     className="rounded-xl px-8"
                 >
-                    Generate Survey
+                    {isAuthenticated ? 'Compose interview' : 'Compose — sign in'}
                 </Button>
             </div>
           </div>
         </div>
+
+        {!isAuthenticated && (
+          <p className="text-sm text-ink-500 mb-4">
+            You can draft your goal freely. Sign in when you’re ready to generate.
+          </p>
+        )}
         
         {error && <p className="text-red-500 mb-4">{error}</p>}
 
-        {/* Minimal Templates */}
-        <div className="w-full max-w-3xl mt-8">
-            <p className="text-xs font-semibold tracking-wider text-stone-400 uppercase mb-4">Start from a template</p>
+        <div className="w-full mt-4">
+            <p className="text-xs font-semibold tracking-wider text-ink-400 uppercase mb-4 flex items-center justify-center gap-2">
+              <Layers className="w-3.5 h-3.5" />
+              Start from a template
+            </p>
             <div className="flex flex-wrap gap-3 justify-center">
                 {TEMPLATES.map((t, i) => (
                     <button 
                         key={i}
-                        onClick={() => {
-                            setPrompt(t.prompt);
-                            // We don't auto-submit so the user can tweak the intricate settings first
-                        }}
-                        className="px-5 py-3 bg-white border border-stone-200 rounded-full hover:border-stone-900 hover:bg-stone-50 transition-all text-sm font-medium text-stone-600 hover:text-stone-900"
+                        type="button"
+                        onClick={() => setPrompt(t.prompt)}
+                        className="px-5 py-3 bg-white border border-ink-200 rounded-full hover:border-ink-900 hover:bg-ink-50 transition-all text-sm font-medium text-ink-600 hover:text-ink-900"
                     >
                         {t.label}
                     </button>
                 ))}
             </div>
         </div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-3xl mx-auto pb-20 animate-in slide-in-from-bottom-4 duration-500 ">
+    <div className="w-full mx-auto pb-20 animate-in slide-in-from-bottom-4 duration-500 ">
       {/* Header */}
       <div className="mb-12 border-b border-stone-200 pb-8">
         <input 
@@ -248,8 +334,9 @@ export const Builder: React.FC<BuilderProps> = ({ onSurveyCreated, existingSurve
 
              {/* Dynamic Inputs based on Type */}
              <div className="pl-4 border-l-2 border-stone-100">
-                {q.type === QuestionType.MultipleChoice && (
+                {(q.type === QuestionType.MultipleChoice || q.type === QuestionType.AB_TEST) && (
                   <div className="space-y-2">
+                    {q.type === QuestionType.AB_TEST && <div className="text-xs text-stone-400 mb-2 uppercase">Items for Tournament</div>}
                     {q.options?.map((opt, i) => (
                       <div key={i} className="flex items-center gap-2 text-stone-600">
                         <div className="w-4 h-4 rounded-full border border-stone-300"></div>

@@ -1,0 +1,57 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --ink-950: #0B0B0B;
+    --ink-800: #0B252E;
+    --ink-50: #F1F6EF;
+    --leaf: #4FD965;
+    --leaf-deep: #3FAE51;
+    --ember: #FF9D4C;
+  }
+
+  body {
+    background-color: var(--ink-50);
+    color: var(--ink-800);
+    font-family: Inter, system-ui, sans-serif;
+  }
+
+  /* Tighter serif — avoid the wide “display” optical look */
+  .font-serif,
+  .font-display {
+    font-optical-sizing: none;
+    font-variation-settings: normal;
+    letter-spacing: -0.015em;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+@layer utilities {
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  /* Solid planes only — no gradients (PA-style blocks) */
+  .archive-grain {
+    background-color: #0B252E;
+  }
+
+  .archive-paper {
+    background-color: #F1F6EF;
+  }
+}
