@@ -4,8 +4,8 @@ type Size = 'sm' | 'md' | 'lg';
 
 const SIZE_PX: Record<Size, number> = { sm: 28, md: 32, lg: 36 };
 
-/** Black circle with D — Delphi mark */
-export const DelphiAvatar: React.FC<{ size?: Size; className?: string }> = ({
+/** Black circle with P — The Precinct mark */
+export const PrecinctAvatar: React.FC<{ size?: Size; className?: string }> = ({
   size = 'md',
   className = '',
 }) => {
@@ -21,7 +21,7 @@ export const DelphiAvatar: React.FC<{ size?: Size; className?: string }> = ({
       }}
       aria-hidden
     >
-      D
+      P
     </div>
   );
 };

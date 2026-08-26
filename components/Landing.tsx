@@ -4,7 +4,9 @@ import { GoogleLogin } from '@react-oauth/google';
 import { Survey, AIModelType } from '../types';
 import { db } from '../services/db';
 import { Builder } from './Builder';
-import { DelphiAvatar, UserAvatar } from './Avatars';
+import { PrecinctAvatar, UserAvatar } from './Avatars';
+import { BRAND_DOMAIN, BRAND_NAME, PRECINCT_FUNCTIONS, brandSession } from '../lib/brand';
+import { DEMO_KINDS, SECTORS, chaptersForKind, type DemoKind } from '../lib/chapters';
 import {
   captureGoogleCredential,
   loadGoogleProfile,
@@ -34,6 +36,7 @@ interface LandingProps {
   onTakeSurvey: (surveyId: string) => void;
   onOpenMine: (row: LandingSurveyRow) => void;
   onSignOut: () => void;
+  onOpenSector: (kind: DemoKind) => void;
 }
 
 type LoginIntent = 'create' | 'participate' | 'choose' | null;
@@ -52,6 +55,7 @@ export const Landing: React.FC<LandingProps> = ({
   onTakeSurvey,
   onOpenMine,
   onSignOut,
+  onOpenSector,
 }) => {
   const [loginIntent, setLoginIntent] = useState<LoginIntent>(null);
   const [googleProfile, setGoogleProfile] = useState<AuthProfile | null>(() => loadGoogleProfile());
@@ -116,7 +120,7 @@ export const Landing: React.FC<LandingProps> = ({
               ) : loginIntent === 'participate' ? (
                 <MessagesSquare size={20} strokeWidth={1.75} />
               ) : (
-                <DelphiAvatar size="md" />
+                <PrecinctAvatar size="md" />
               )}
             </div>
             {loginIntent === 'choose' ? (
@@ -195,10 +199,27 @@ export const Landing: React.FC<LandingProps> = ({
       <section className="bg-ember-500 text-white">
         <nav className="flex items-center justify-between px-6 sm:px-12 h-14 border-b border-white/15">
           <div className="flex items-center gap-2.5">
-            <DelphiAvatar size="sm" />
-            <span className="font-serif text-lg font-semibold tracking-tight">Delphi</span>
+            <PrecinctAvatar size="sm" />
+            <div className="leading-tight">
+              <span className="font-serif text-lg font-semibold tracking-tight block">{BRAND_NAME}</span>
+              <span className="text-[10px] uppercase tracking-[0.18em] text-white/65 hidden sm:block">
+                {BRAND_DOMAIN}
+              </span>
+            </div>
           </div>
           <div className="flex items-center gap-3 sm:gap-4">
+            <a
+              href="#what-the-precinct-does"
+              className="text-sm text-white/80 hover:text-white hidden md:inline"
+            >
+              What it does
+            </a>
+            <a
+              href="#sectors"
+              className="text-sm text-white/80 hover:text-white hidden md:inline"
+            >
+              Sectors
+            </a>
             <a
               href="#create"
               className="text-sm text-white/80 hover:text-white hidden sm:inline-flex items-center gap-1.5"
@@ -252,13 +273,24 @@ export const Landing: React.FC<LandingProps> = ({
         <div className="grid lg:grid-cols-2 gap-10 lg:gap-16 px-6 sm:px-12 py-16 sm:py-24 items-center max-w-6xl mx-auto">
           <div className="space-y-8">
             <div className="space-y-5">
+              <p className="text-[11px] uppercase tracking-[0.28em] text-white/70">{BRAND_DOMAIN}</p>
               <h1 className="font-serif text-4xl sm:text-5xl lg:text-[3.35rem] font-semibold leading-[1.1] tracking-tight">
                 A living archive of conversations
               </h1>
               <p className="text-white/90 text-lg sm:text-xl leading-relaxed max-w-md font-serif">
-                Delphi turns research goals into interviews that listen — then opens deliberation so
+                The Precinct turns research goals into interviews that listen — then opens deliberation so
                 communities can find common ground.
               </p>
+              <ul className="flex flex-wrap gap-x-4 gap-y-2 text-[11px] uppercase tracking-[0.2em] text-white/75">
+                {PRECINCT_FUNCTIONS.map((fn, i) => (
+                  <li key={fn.ward} className="flex items-center gap-4">
+                    {i > 0 && <span aria-hidden className="text-white/40">·</span>}
+                    <a href="#what-the-precinct-does" className="hover:text-white">
+                      {fn.ward}
+                    </a>
+                  </li>
+                ))}
+              </ul>
             </div>
             <div className="flex flex-wrap gap-3">
               <button
@@ -300,6 +332,82 @@ export const Landing: React.FC<LandingProps> = ({
         </div>
       </section>
 
+      {/* ——— Four wards of one precinct ——— */}
+      <section id="what-the-precinct-does" className="bg-ink-950 text-white">
+        <div className="max-w-5xl mx-auto px-6 sm:px-12 py-16 sm:py-20">
+          <div className="max-w-2xl space-y-3 mb-10 sm:mb-12">
+            <p className="text-[11px] uppercase tracking-[0.28em] text-white/45">{BRAND_DOMAIN}</p>
+            <h2 className="font-serif text-3xl sm:text-4xl font-semibold tracking-tight">
+              Four civic tools. One precinct.
+            </h2>
+            <p className="text-white/70 text-base leading-relaxed">
+              Conversation is the method. These are the jobs it does — listen at scale, go deeper,
+              deliberate, and carry the record to the people who decide.
+            </p>
+          </div>
+
+          <div className="grid sm:grid-cols-2 border border-white/20">
+            {PRECINCT_FUNCTIONS.map((fn) => (
+              <article
+                key={fn.ward}
+                className="px-5 sm:px-7 py-7 sm:py-8 border-white/15 border-b sm:border-b-0 sm:odd:border-r sm:[&:nth-child(-n+2)]:border-b last:border-b-0"
+              >
+                <p className="text-[11px] uppercase tracking-[0.22em] text-ember-400 mb-2">{fn.ward}</p>
+                <h3 className="font-serif text-xl sm:text-[1.35rem] font-semibold leading-snug mb-3">
+                  {fn.title}
+                </h3>
+                <p className="text-sm text-white/70 leading-relaxed">{fn.body}</p>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ——— Sectors ——— */}
+      <section id="sectors" className="bg-cream px-6 sm:px-12 py-16 sm:py-20 border-b border-ink-800/5">
+        <div className="max-w-5xl mx-auto">
+          <div className="max-w-2xl space-y-3 mb-10 sm:mb-12">
+            <p className="text-[11px] uppercase tracking-[0.28em] text-ink-400">Sectors</p>
+            <h2 className="font-serif text-3xl sm:text-4xl font-semibold text-ink-950 tracking-tight">
+              Government. Development. Technology.
+            </h2>
+            <p className="text-ink-800/70 text-base leading-relaxed">
+              Same four jobs. A different civic bridge. Each sector has its own records — not
+              templates mixed into a departmental briefing.
+            </p>
+          </div>
+          <div className="grid md:grid-cols-3 gap-4">
+            {DEMO_KINDS.map((kind) => {
+              const sector = SECTORS[kind];
+              const lead = chaptersForKind(kind)[0];
+              return (
+                <button
+                  key={kind}
+                  type="button"
+                  onClick={() => onOpenSector(kind)}
+                  className="text-left bg-white border border-ink-200 rounded-2xl px-5 py-6 hover:border-ink-800 hover:bg-ink-50 active:scale-[0.99] transition-[transform,background-color,border-color] duration-150"
+                >
+                  <span className="block text-[11px] uppercase tracking-[0.18em] text-ink-400">
+                    {sector.eyebrow}
+                  </span>
+                  <span className="block font-serif text-2xl font-semibold text-ink-950 mt-2 leading-snug">
+                    {sector.title}
+                  </span>
+                  <span className="block mt-2 text-sm text-ink-800/70 leading-relaxed">
+                    {sector.lead}
+                  </span>
+                  {lead && (
+                    <span className="mt-4 block text-[11px] uppercase tracking-[0.16em] text-ink-500">
+                      {lead.shortTitle} · {lead.region}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
       {/* ——— Feature scope: essay / deliberation UI ——— */}
       <section id="features" className="bg-cream px-6 sm:px-12 py-16 sm:py-20 border-b border-ink-800/5">
         <div className="max-w-5xl mx-auto grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
@@ -309,7 +417,7 @@ export const Landing: React.FC<LandingProps> = ({
               From interview to data essay
             </h2>
             <p className="text-ink-800/65 text-base leading-relaxed max-w-md">
-              After people talk and vote, Delphi surfaces bridges and tensions — numbered themes,
+              After people talk and vote, The Precinct surfaces bridges and tensions — numbered themes,
               reflections, and Agree / Pass / Disagree — as a readable report, not a dashboard dump.
             </p>
             <ul className="space-y-2 text-sm text-ink-800/80 pt-2">
@@ -422,7 +530,7 @@ export const Landing: React.FC<LandingProps> = ({
                         if (!user) {
                           setLoginIntent('participate');
                           try {
-                            sessionStorage.setItem('delphi_pending_take', s.id);
+                            brandSession.set('pending_take', s.id);
                           } catch { /* ignore */ }
                           return;
                         }
@@ -494,7 +602,20 @@ export const Landing: React.FC<LandingProps> = ({
       </section>
 
       <footer className="bg-ink-950 text-white/40 text-xs text-center py-8 px-6">
-        Delphi · Conversations that become a record
+        {BRAND_NAME} · {BRAND_DOMAIN}
+        <span className="mx-2">·</span>
+        {DEMO_KINDS.map((kind, i) => (
+          <span key={kind}>
+            {i > 0 ? <span className="text-white/20"> · </span> : null}
+            <button
+              type="button"
+              onClick={() => onOpenSector(kind)}
+              className="hover:text-white/70 active:scale-[0.97] transition-[transform,color] duration-150"
+            >
+              {SECTORS[kind].nav}
+            </button>
+          </span>
+        ))}
       </footer>
     </div>
   );

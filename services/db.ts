@@ -1,6 +1,8 @@
 import { init, id, tx, lookup } from '@instantdb/react';
 
-// InstantDB schema for Delphi
+import { brandStorage } from '../lib/brand';
+
+// InstantDB schema for The Precinct
 // Tables: surveys, responses, utterances, votes
 
 const APP_ID = import.meta.env.VITE_INSTANT_APP_ID || "";
@@ -57,10 +59,10 @@ export { id, tx, lookup };
 
 // --- Helper: Get or create a persistent anonymous session ID ---
 export const getSessionId = (): string => {
-  let sessionId = localStorage.getItem('delphi_session_id');
+  let sessionId = brandStorage.get('session_id');
   if (!sessionId) {
     sessionId = crypto.randomUUID();
-    localStorage.setItem('delphi_session_id', sessionId);
   }
+  brandStorage.set('session_id', sessionId);
   return sessionId;
 };

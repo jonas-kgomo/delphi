@@ -1,9 +1,25 @@
-# Delphi — Business Model & Product Strategy
+# The Precinct — Business Model & Product Strategy
 
 ## Core Value Proposition
 
-AI-powered survey creation + conversational interviewing. Surveys feel like conversations, not forms.
-Delphi replaces SurveyMonkey/Typeform with an AI interviewer that adapts in real-time.
+AI-powered interviews that feel like conversations, not forms. The Precinct replaces SurveyMonkey/Typeform with an interviewer that adapts in real time — then opens deliberation so communities can find common ground.
+
+**precinct.city** is a living archive of those conversations. The same place also does four civic jobs:
+
+1. **Deliberative polling** — Informed, structured public dialogue to gauge how opinion changes before and after deliberation.
+2. **Comprehensive survey** — Broad community perspectives at scale, with accessible feedback.
+3. **Active elicitation** — Uncovers values, priority issues, and creative solutions through targeted engagement.
+4. **Civic bridge** — Connects diverse local voices directly to policy decision-makers.
+
+### Precinct for Government
+
+| Record | Mandate | Partner |
+|--------|---------|---------|
+| **Natal Precinct Records** | Infrastructure feedback & service delivery sentiment (KZN) | DPWI — [publicworks.gov.za](http://publicworks.gov.za/) |
+
+Demo: `?demo=government`
+
+Climate and AI are experimental examples (same idea as a conference template), not the departmental briefing: `?demo=climate`, `?demo=ai`.
 
 ---
 
@@ -19,15 +35,15 @@ Delphi replaces SurveyMonkey/Typeform with an AI interviewer that adapts in real
 
 ## Monetization Tiers
 
-### 1. Free Tier — `delphi:free`
+### 1. Free Tier — `precinct:free`
 - **3 surveys/month**, max 10 responses each
 - Base Fast model only (GPT-OSS 20B)
 - Basic question types (MC, Scale, Text, Yes/No)
 - No AB_TEST or Matrix
-- Delphi branding on respondent view
+- The Precinct branding on respondent view
 - No export
 
-### 2. Pro — `delphi:pro` — $29/mo per seat
+### 2. Pro — `precinct:pro` — $29/mo per seat
 - **Unlimited surveys**, max 500 responses each
 - All 4 AI models (Fast, Reasoning, Thinking, Pro)
 - All question types including AB_TEST tournaments
@@ -37,7 +53,7 @@ Delphi replaces SurveyMonkey/Typeform with an AI interviewer that adapts in real
 - Response analytics dashboard
 - Priority support
 
-### 3. Team — `delphi:team` — $79/mo (up to 5 seats, $15/additional)
+### 3. Team — `precinct:team` — $79/mo (up to 5 seats, $15/additional)
 - Everything in Pro
 - **Unlimited responses**
 - Shared survey library across team
@@ -46,7 +62,7 @@ Delphi replaces SurveyMonkey/Typeform with an AI interviewer that adapts in real
 - Webhook integrations (Slack, Zapier)
 - SSO (Google, Microsoft)
 
-### 4. Enterprise — `delphi:enterprise` — Custom pricing
+### 4. Enterprise — `precinct:enterprise` — Custom pricing
 - Everything in Team
 - **Dedicated AI model fine-tuning** on company tone/style
 - On-premise deployment option
@@ -65,11 +81,11 @@ Delphi replaces SurveyMonkey/Typeform with an AI interviewer that adapts in real
 
 ### Secondary
 3. **AI Model Credits** — Thinking (Qwen) and Pro (GPT-OSS 120B) use more compute; charge premium for heavy usage
-4. **White-label licensing** — Companies embed Delphi in their own product (custom branding, API-only)
+4. **White-label licensing** — Companies embed The Precinct in their own product (custom branding, API-only)
 5. **Marketplace** — Sell pre-built survey templates (industry-specific playbooks)
 
 ### Future
-6. **Delphi Insights** — AI-generated analysis reports from survey data ($5-15/report)
+6. **Precinct Insights** — AI-generated analysis reports from survey data ($5-15/report)
 7. **Panel Recruitment** — Connect creators with respondent panels (commission-based)
 
 ---
@@ -90,11 +106,11 @@ Delphi replaces SurveyMonkey/Typeform with an AI interviewer that adapts in real
 
 **Stripe Products to Create:**
 ```
-delphi_pro_monthly    → $29/mo
-delphi_pro_annual     → $290/yr (save 17%)
-delphi_team_monthly   → $79/mo
-delphi_team_annual    → $790/yr
-delphi_response_pack  → $10 for 500 additional responses
+precinct_pro_monthly    → $29/mo
+precinct_pro_annual     → $290/yr (save 17%)
+precinct_team_monthly   → $79/mo
+precinct_team_annual    → $790/yr
+precinct_response_pack  → $10 for 500 additional responses
 ```
 
 ### Phase 3: Enterprise
@@ -119,7 +135,7 @@ delphi_response_pack  → $10 for 500 additional responses
 
 ## Competitive Positioning
 
-| Feature | Typeform | SurveyMonkey | Google Forms | **Delphi** |
+| Feature | Typeform | SurveyMonkey | Google Forms | **The Precinct** |
 |---------|----------|--------------|--------------|------------|
 | AI-generated surveys | ❌ | Basic | ❌ | ✅ Advanced |
 | Conversational interview | ❌ | ❌ | ❌ | ✅ |
@@ -159,7 +175,7 @@ Data Flow:
 
 ### Link Format
 ```
-https://delphi.app/s/<survey-id>          # Production (with backend)
+https://precinct.city/s/<survey-id>       # Production (with backend)
 https://app.com/#/respond/<base64-data>   # MVP (client-only, no backend)
 ```
 

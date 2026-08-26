@@ -5,12 +5,22 @@ import { Interviewer } from './components/Interviewer';
 import { PolisVote } from './components/PolisVote';
 import { ConsensusView } from './components/ConsensusView';
 import { Landing } from './components/Landing';
+import { ChaptersDemo } from './components/ChaptersDemo';
 import { ParticipantHome } from './components/ParticipantHome';
 import { FileText, Share2, BarChart3, Copy, Check, ExternalLink, Scale, Sparkles, Layers, Plus } from 'lucide-react';
 import { db, id, tx, getSessionId } from './services/db';
 import { extractUtterancesFromTranscripts } from './services/geminiService';
 import { ModelPicker } from './components/ModelPicker';
-import { DelphiAvatar, UserAvatar } from './components/Avatars';
+import { PrecinctAvatar, UserAvatar } from './components/Avatars';
+import { BRAND_DOMAIN, BRAND_NAME, brandSession, brandStorage } from './lib/brand';
+import {
+  belongsToKind,
+  demoKindForChapter,
+  isChapterId,
+  parseDemoParam,
+  type ChapterId,
+  type DemoKind,
+} from './lib/chapters';
 import { DEFAULT_AI_MODEL } from './models';
 import {
   captureGoogleCredential,
@@ -23,7 +33,7 @@ import { clearUserMode, getUserMode, setUserMode, type UserMode } from './lib/us
 import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
-const LAST_SURVEY_KEY = 'delphi_last_survey_id';
+const LAST_SURVEY_SUFFIX = 'last_survey_id';
 
 type DbSurveyRow = {
   id: string;
@@ -45,6 +55,8 @@ const parseDbSurvey = (s: DbSurveyRow): Survey => ({
 export default function App() {
   const { isLoading: authLoading, user, error: authError } = db.useAuth();
   const [view, setView] = useState<ViewMode>('LANDING');
+  const [chapterId, setChapterId] = useState<ChapterId | null>(null);
+  const [demoKind, setDemoKind] = useState<DemoKind>('government');
   const [currentSurvey, setCurrentSurvey] = useState<Survey | null>(null);
   const [currentSurveyDbId, setCurrentSurveyDbId] = useState<string | null>(null);
   const [model, setModel] = useState<AIModelType>(DEFAULT_AI_MODEL);
@@ -82,28 +94,75 @@ export default function App() {
     return base;
   }, [user, googleProfile]);
 
-  // --- URL Routing: ?respond= | ?vote= ---
-  useEffect(() => {
+  const applyLocation = () => {
     const params = new URLSearchParams(window.location.search);
     const respondId = params.get('respond');
     const voteId = params.get('vote');
+    const chapter = params.get('chapter');
+    const demo = params.get('demo');
     if (voteId) {
       setCurrentSurveyDbId(voteId);
       setView('VOTE');
       setVoteUrl(`${window.location.origin}${window.location.pathname}?vote=${voteId}`);
-    } else if (respondId) {
+      return;
+    }
+    if (respondId) {
       setCurrentSurveyDbId(respondId);
       setView('RESPOND');
+      return;
     }
+    if (isChapterId(chapter)) {
+      setChapterId(chapter);
+      setDemoKind(demoKindForChapter(chapter));
+      setView('CHAPTERS');
+      return;
+    }
+    const kind = parseDemoParam(demo);
+    if (kind) {
+      setChapterId(null);
+      setDemoKind(kind);
+      setView('CHAPTERS');
+    }
+  };
+
+  // --- URL Routing: ?respond= | ?vote= | ?chapter= | ?demo=government | development | technology ---
+  useEffect(() => {
+    applyLocation();
+    window.addEventListener('popstate', applyLocation);
+    return () => window.removeEventListener('popstate', applyLocation);
   }, []);
+
+  const openDemo = (kind: DemoKind, id: ChapterId | null = null) => {
+    const url = new URL(window.location.href);
+    url.search = '';
+    url.searchParams.set('demo', kind);
+    if (id) url.searchParams.set('chapter', id);
+    window.history.pushState({}, '', url);
+    setDemoKind(kind);
+    setChapterId(id);
+    setView('CHAPTERS');
+  };
+
+  const openChapters = (id: ChapterId | null) => {
+    openDemo(id ? demoKindForChapter(id) : demoKind, id);
+  };
+
+  const closeChapters = () => {
+    const url = new URL(window.location.href);
+    url.searchParams.delete('chapter');
+    url.searchParams.delete('demo');
+    window.history.pushState({}, '', url.pathname + url.hash);
+    setChapterId(null);
+    setView('LANDING');
+  };
 
   // After participate sign-in, open the survey they clicked (skip builder)
   useEffect(() => {
     if (!user) return;
     try {
-      const pendingTake = sessionStorage.getItem('delphi_pending_take');
+      const pendingTake = brandSession.get('pending_take');
       if (!pendingTake) return;
-      sessionStorage.removeItem('delphi_pending_take');
+      brandSession.remove('pending_take');
       setUserMode('participant');
       window.location.href = `${window.location.origin}${window.location.pathname}?respond=${pendingTake}`;
     } catch { /* ignore */ }
@@ -118,7 +177,7 @@ export default function App() {
       return;
     }
     if (didResumeMode.current) return;
-    if (view === 'RESPOND' || view === 'VOTE') {
+    if (view === 'RESPOND' || view === 'VOTE' || view === 'CHAPTERS') {
       didResumeMode.current = true;
       return;
     }
@@ -140,7 +199,7 @@ export default function App() {
 
   useEffect(() => {
     if (user && currentSurveyDbId) {
-      localStorage.setItem(LAST_SURVEY_KEY, currentSurveyDbId);
+      brandStorage.set(LAST_SURVEY_SUFFIX, currentSurveyDbId);
     }
   }, [currentSurveyDbId, user]);
 
@@ -157,7 +216,7 @@ export default function App() {
     if (!row) {
       // Stale localStorage id (deleted survey)
       setCurrentSurveyDbId(null);
-      localStorage.removeItem(LAST_SURVEY_KEY);
+      brandStorage.remove(LAST_SURVEY_SUFFIX);
       return;
     }
     try {
@@ -370,7 +429,7 @@ export default function App() {
     if (survey.id !== currentSurveyDbId) {
       setCurrentSurveyDbId(null);
       setShareUrl(null);
-      localStorage.removeItem(LAST_SURVEY_KEY);
+      brandStorage.remove(LAST_SURVEY_SUFFIX);
     }
   };
 
@@ -395,7 +454,7 @@ export default function App() {
     setShareUrl(null);
     setVoteUrl(null);
     setListPublicly(false);
-    localStorage.removeItem(LAST_SURVEY_KEY);
+    brandStorage.remove(LAST_SURVEY_SUFFIX);
     setBuilderNonce((n) => n + 1);
     setView('DASHBOARD');
   };
@@ -422,7 +481,7 @@ export default function App() {
     setCurrentSurveyDbId(null);
     setShareUrl(null);
     setView('LANDING');
-    localStorage.removeItem(LAST_SURVEY_KEY);
+    brandStorage.remove(LAST_SURVEY_SUFFIX);
   };
 
   const handleGoogleSuccess = ({ credential }: { credential?: string | null }) => {
@@ -441,6 +500,19 @@ export default function App() {
     window.location.href = `${window.location.origin}${window.location.pathname}?respond=${surveyId}`;
   };
 
+  if (view === 'CHAPTERS') {
+    return (
+      <ChaptersDemo
+        kind={demoKind}
+        chapterId={chapterId && belongsToKind(chapterId, demoKind) ? chapterId : null}
+        guestId={sessionId}
+        onOpen={openChapters}
+        onOpenKind={(kind) => openDemo(kind, null)}
+        onHome={closeChapters}
+      />
+    );
+  }
+
   // --- Public Vote View (Polis deliberation / living archive) ---
   if (view === 'VOTE') {
     return (
@@ -451,7 +523,7 @@ export default function App() {
               <div className="w-8 h-8 bg-white/10 border border-white/20 rounded-lg flex items-center justify-center">
                 <Scale size={18} />
               </div>
-              <span className="font-serif text-xl font-semibold tracking-tight">Delphi</span>
+              <span className="font-serif text-xl font-semibold tracking-tight">{BRAND_NAME}</span>
               <span className="text-xs text-white/50 ml-2 tracking-wide">Living archive</span>
             </div>
           </nav>
@@ -497,7 +569,7 @@ export default function App() {
             <div className="w-8 h-8 bg-stone-900 rounded-lg flex items-center justify-center text-white">
               <Scale size={18} />
             </div>
-            <span className="font-serif text-xl font-bold tracking-tight">Delphi</span>
+            <span className="font-serif text-xl font-bold tracking-tight">{BRAND_NAME}</span>
             <span className="text-xs text-stone-400 ml-2">Consensus map</span>
           </div>
         </nav>
@@ -529,8 +601,8 @@ export default function App() {
         <div className="min-h-screen font-sans text-stone-900 bg-stone-50">
           <nav className="fixed top-0 left-0 right-0 h-14 bg-white/80 backdrop-blur-md border-b border-stone-200 z-50 flex items-center justify-center px-6">
             <div className="flex items-center gap-2.5">
-              <DelphiAvatar size="sm" />
-              <span className="font-serif text-lg font-semibold tracking-tight">Delphi</span>
+              <PrecinctAvatar size="sm" />
+              <span className="font-serif text-lg font-semibold tracking-tight">{BRAND_NAME}</span>
             </div>
           </nav>
           <main className="pt-20 px-6 lg:px-12 min-h-screen w-full">
@@ -604,6 +676,7 @@ export default function App() {
             setView('DASHBOARD');
           }}
           onSignOut={handleSignOut}
+          onOpenSector={(kind) => openDemo(kind, null)}
         />
       </GoogleOAuthProvider>
     );
@@ -620,8 +693,8 @@ export default function App() {
             className="flex items-center gap-2.5"
             onClick={() => { setView('LANDING'); setShareUrl(null); }}
           >
-            <DelphiAvatar size="sm" />
-            <span className="font-serif text-lg font-semibold tracking-tight text-ink-800">Delphi</span>
+            <PrecinctAvatar size="sm" />
+            <span className="font-serif text-lg font-semibold tracking-tight text-ink-800">{BRAND_NAME}</span>
           </button>
 
           <div className="flex items-center gap-1 sm:gap-4">
@@ -631,6 +704,13 @@ export default function App() {
               className="hidden sm:inline px-2 py-1 text-sm font-medium rounded-md text-ink-400 hover:text-ink-700 transition-colors"
             >
               Participate
+            </button>
+            <button
+              type="button"
+              onClick={() => openDemo('government', null)}
+              className="hidden sm:inline px-2 py-1 text-sm font-medium rounded-md text-ink-400 hover:text-ink-700 transition-colors"
+            >
+              Sectors
             </button>
             <button
               type="button"
@@ -1018,7 +1098,7 @@ export default function App() {
         
         {/* Footer */}
         <footer className="py-8 text-center text-xs text-stone-400 border-t border-stone-100 mt-12 bg-white">
-          <p>Powered by AI Studio & Groq SDK • Built with React & Tailwind • Delphi AI 2026</p>
+          <p>{BRAND_NAME} · {BRAND_DOMAIN} · 2026</p>
         </footer>
       </div>
     </GoogleOAuthProvider>

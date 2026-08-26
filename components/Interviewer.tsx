@@ -2,7 +2,8 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Message, Survey, QuestionType, Question, AIModelType, ParticipantIntake } from '../types';
 import { createInterviewSession, transcribeAudio } from '../services/geminiService';
 import { InterviewIntake } from './InterviewIntake';
-import { DelphiAvatar, UserAvatar } from './Avatars';
+import { PrecinctAvatar, UserAvatar } from './Avatars';
+import { BRAND_NAME } from '../lib/brand';
 import type { AuthProfile } from '../lib/authProfile';
 import { Button } from './ui/Button';
 import ReactMarkdown from 'react-markdown';
@@ -175,7 +176,7 @@ export const Interviewer: React.FC<InterviewerProps> = ({
       {
         id: crypto.randomUUID(),
         role: 'model',
-        content: `Hi ${firstName} — I’m Delphi. Thanks for joining **${survey.title}**.
+        content: `Hi ${firstName} — welcome to The Precinct. Thanks for joining **${survey.title}**.
 
 This is a conversational interview. I’ll ask about ${survey.description ? 'the topic below' : 'your views'}, listen carefully, and follow up when something needs more texture.
 
@@ -222,7 +223,7 @@ This is a conversational interview. I’ll ask about ${survey.description ? 'the
         {
           id: crypto.randomUUID(),
           role: 'model',
-          content: "I'm having trouble connecting to Delphi. Please try refreshing.",
+          content: "I'm having trouble connecting to The Precinct. Please try refreshing.",
         },
       ]);
     } finally {
@@ -461,13 +462,13 @@ This is a conversational interview. I’ll ask about ${survey.description ? 'the
     <div className="flex flex-col h-[calc(100vh-80px)] w-full bg-ink-50 rounded-2xl overflow-hidden border border-ink-200">
       <div className="px-4 sm:px-5 py-3 bg-white border-b border-ink-200 flex items-center justify-between gap-3">
         <div className="flex items-center gap-3 min-w-0">
-          <DelphiAvatar size="md" />
+          <PrecinctAvatar size="md" />
           <div className="min-w-0">
             <h2 className="font-sans font-semibold text-ink-900 truncate text-sm">
               {survey.title}
             </h2>
             <p className="text-[11px] text-ink-400 truncate font-sans">
-              Delphi
+              {BRAND_NAME}
               {isSaving ? ' · Saving…' : ''}
               {!isRespondent ? ' · Preview' : ''}
             </p>
@@ -504,7 +505,7 @@ This is a conversational interview. I’ll ask about ${survey.description ? 'the
               {isUser ? (
                 <UserAvatar name={displayName} picture={authProfile.picture} size="sm" />
               ) : (
-                <DelphiAvatar size="sm" />
+                <PrecinctAvatar size="sm" />
               )}
 
               <div className={`flex flex-col min-w-0 max-w-[min(85%,36rem)] ${isUser ? 'items-end' : 'items-start'}`}>
@@ -566,7 +567,7 @@ This is a conversational interview. I’ll ask about ${survey.description ? 'the
 
         {isLoading && (
           <div className="flex gap-2.5 items-end">
-            <DelphiAvatar size="sm" />
+            <PrecinctAvatar size="sm" />
             <div className="bg-white rounded-2xl rounded-bl-sm px-3.5 py-2.5 border border-ink-200 flex items-center gap-2">
               <Sparkles className="w-3.5 h-3.5 text-ink-400 animate-pulse" />
               <span className="text-sm text-ink-400 font-sans">Listening…</span>

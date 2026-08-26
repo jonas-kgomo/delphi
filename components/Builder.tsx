@@ -3,6 +3,7 @@ import { Survey, Question, QuestionType, AIModelType } from '../types';
 import { generateSurveyFromGoal } from '../services/geminiService';
 import { Button } from './ui/Button';
 import { Plus, Trash2, ArrowRight, Table, LayoutList, Layers, Users, Globe, MapPin, SquareMousePointer } from 'lucide-react';
+import { brandSession } from '../lib/brand';
 
 interface BuilderProps {
   onSurveyCreated: (survey: Survey) => void;
@@ -26,7 +27,15 @@ const TEMPLATES = [
     prompt: "Create an event registration survey for a tech conference, asking for dietary restrictions, workshop preferences, and travel details."
   },
   {
-    label: "Malaria Awareness",
+    label: "Development · Climate",
+    prompt: "Create a community climate-resilience interview for the Eastern Cape: drought, flood, coastal change, informal adaptation (livestock, water points), and whether vernacular weather knowledge should count as official observation. Deliberative, not a yes/no on climate change."
+  },
+  {
+    label: "Technology · AI",
+    prompt: "Create an interview on subjective views of AI in a low-resource, multilingual setting: where people met the tool, what broke trust (language, connectivity, records leaving the room), job-loss fear, and who must sit in the governance room. Values and efficacy as lived — not a model benchmark."
+  },
+  {
+    label: "Development · Malaria",
     prompt: "Create a public health survey to assess malaria awareness, prevention habits (bed nets), and recent symptoms in a rural community."
   },
   {
@@ -98,8 +107,8 @@ export const Builder: React.FC<BuilderProps> = ({
 
     if (!isAuthenticated) {
       try {
-        sessionStorage.setItem(
-          'delphi_pending_compose',
+        brandSession.set(
+          'pending_compose',
           JSON.stringify({ prompt: promptToUse, domain, tone, audience, region })
         );
       } catch { /* ignore */ }
@@ -114,7 +123,7 @@ export const Builder: React.FC<BuilderProps> = ({
   useEffect(() => {
     if (!isAuthenticated || survey || isGenerating) return;
     try {
-      const raw = sessionStorage.getItem('delphi_pending_compose');
+      const raw = brandSession.get('pending_compose');
       if (!raw) return;
       const pending = JSON.parse(raw) as {
         prompt?: string;
@@ -123,7 +132,7 @@ export const Builder: React.FC<BuilderProps> = ({
         audience?: string;
         region?: string;
       };
-      sessionStorage.removeItem('delphi_pending_compose');
+      brandSession.remove('pending_compose');
       if (!pending.prompt?.trim()) return;
       setPrompt(pending.prompt);
       if (pending.domain) setDomain(pending.domain);

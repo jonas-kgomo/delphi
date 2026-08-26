@@ -1,6 +1,7 @@
 import React from 'react';
 import { ArrowRight, MessagesSquare, SquarePen } from 'lucide-react';
-import { DelphiAvatar, UserAvatar } from './Avatars';
+import { PrecinctAvatar, UserAvatar } from './Avatars';
+import { BRAND_NAME } from '../lib/brand';
 import type { AuthProfile } from '../lib/authProfile';
 import type { LandingSurveyRow } from './Landing';
 
@@ -31,8 +32,8 @@ export const ParticipantHome: React.FC<ParticipantHomeProps> = ({
     <div className="min-h-screen font-sans text-ink-800 bg-cream">
       <nav className="flex items-center justify-between px-6 sm:px-10 h-14 border-b border-ink-800/10 bg-cream">
         <button type="button" onClick={onHome} className="flex items-center gap-2.5">
-          <DelphiAvatar size="sm" />
-          <span className="font-serif text-lg font-semibold tracking-tight">Delphi</span>
+          <PrecinctAvatar size="sm" />
+          <span className="font-serif text-lg font-semibold tracking-tight">{BRAND_NAME}</span>
         </button>
         <div className="flex items-center gap-3">
           <button

@@ -107,7 +107,7 @@ export const generateSurveyFromGoal = async (goal: string, modelType: AIModelTyp
     if (config.structuredOutputs === 'prompt-json') {
       const { text } = await generateText({
         model,
-        system: `You are an expert survey methodologist named Delphi. Output ONLY a valid JSON object matching this schema:\n${SURVEY_SCHEMA_PROMPT}\nNo markdown fences. No explanation outside JSON.`,
+        system: `You are an expert survey methodologist for The Precinct. Output ONLY a valid JSON object matching this schema:\n${SURVEY_SCHEMA_PROMPT}\nNo markdown fences. No explanation outside JSON.`,
         prompt: baseUserPrompt(goal),
         maxRetries: 0,
         maxOutputTokens: config.maxOutputTokens,
@@ -118,7 +118,7 @@ export const generateSurveyFromGoal = async (goal: string, modelType: AIModelTyp
       const { object } = await generateObject({
         model,
         schema: surveySchema,
-        system: "You are an expert survey methodologist named Delphi.",
+        system: "You are an expert survey methodologist for The Precinct.",
         prompt: baseUserPrompt(goal),
         maxRetries: 0,
         maxOutputTokens: config.maxOutputTokens,
@@ -253,7 +253,7 @@ export const createInterviewSession = (
   const q0Short = survey.questions[0]?.id.slice(0, 8) || 'abc';
   const firstName = participant?.name?.split(/\s+/)[0] || 'there';
 
-  const systemPrompt = `You are Delphi — a skilled human interviewer, not a form. You conduct a warm, attentive conversation that still collects structured answers.
+  const systemPrompt = `You are The Precinct interviewer — a skilled human interviewer, not a form. You conduct a warm, attentive conversation that still collects structured answers.
 
 Survey: "${survey.title}"
 Context: ${survey.description || 'General research interview'}

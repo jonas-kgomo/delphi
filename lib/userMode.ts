@@ -1,18 +1,20 @@
-/** How someone is using Delphi this session / return visit */
+import { brandStorage } from './brand';
+
+/** How someone is using The Precinct this session / return visit */
 export type UserMode = 'participant' | 'maker';
 
-const KEY = 'delphi_user_mode';
+const KEY = 'user_mode';
 
 export const getUserMode = (): UserMode | null => {
-  const v = localStorage.getItem(KEY);
+  const v = brandStorage.get(KEY);
   if (v === 'participant' || v === 'maker') return v;
   return null;
 };
 
 export const setUserMode = (mode: UserMode) => {
-  localStorage.setItem(KEY, mode);
+  brandStorage.set(KEY, mode);
 };
 
 export const clearUserMode = () => {
-  localStorage.removeItem(KEY);
+  brandStorage.remove(KEY);
 };

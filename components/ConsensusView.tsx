@@ -18,6 +18,10 @@ interface ConsensusViewProps {
   onCopyLink?: () => void;
   copied?: boolean;
   model?: AIModelType;
+  /** Seeded essay — render the report as already written */
+  initialEssay?: DataEssay | null;
+  /** Skip generate / refresh; the page is already filled */
+  locked?: boolean;
 }
 
 const SECTIONS = [
@@ -37,6 +41,8 @@ export const ConsensusView: React.FC<ConsensusViewProps> = ({
   onCopyLink,
   copied,
   model = 'herald',
+  initialEssay = null,
+  locked = false,
 }) => {
   const analysis = useMemo(() => analyzePolis(utterances, votes), [utterances, votes]);
   const consensus = analysis.utterances.filter((u) => u.isConsensus);
@@ -56,9 +62,9 @@ export const ConsensusView: React.FC<ConsensusViewProps> = ({
     [analysis.utterances]
   );
 
-  const [essay, setEssay] = useState<DataEssay | null>(null);
+  const [essay, setEssay] = useState<DataEssay | null>(initialEssay);
   const [loadingEssay, setLoadingEssay] = useState(false);
-  const autoKeyRef = useRef<string>('');
+  const autoKeyRef = useRef<string>(locked || initialEssay ? 'seeded' : '');
 
   const statsNote = `${analysis.voterCount} voters · ${analysis.utteranceCount} statements · ${votes.length} votes · ${reasons.length} reflections · ${analysis.groups.length} opinion groups`;
 
@@ -105,15 +111,20 @@ export const ConsensusView: React.FC<ConsensusViewProps> = ({
     }
   };
 
+  useEffect(() => {
+    if (initialEssay) setEssay(initialEssay);
+  }, [initialEssay]);
+
   // Auto-write essay once when enough signal exists (reset when corpus changes)
   useEffect(() => {
+    if (locked || initialEssay) return;
     const key = `${surveyTitle}:${analysis.utteranceCount}:${votes.length}`;
     if (votes.length < 3 || utterances.length < 2) return;
     if (autoKeyRef.current === key) return;
     autoKeyRef.current = key;
     void loadEssay();
     // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional one-shot per corpus key
-  }, [surveyTitle, analysis.utteranceCount, votes.length, utterances.length]);
+  }, [surveyTitle, analysis.utteranceCount, votes.length, utterances.length, locked, initialEssay]);
 
   const scrollTo = (id: string) => {
     document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -140,7 +151,7 @@ export const ConsensusView: React.FC<ConsensusViewProps> = ({
     <article className="max-w-3xl mx-auto py-6 pb-24">
       {/* Hero */}
       <header className="space-y-6 mb-12">
-        <p className="text-[11px] uppercase tracking-[0.28em] text-ink-400">Delphi data essay</p>
+        <p className="text-[11px] uppercase tracking-[0.28em] text-ink-400">The Precinct data essay</p>
         <h1 className="font-display text-4xl sm:text-5xl font-semibold text-ink-950 leading-[1.1] tracking-tight">
           {essay?.headline || `What ${analysis.voterCount || 'people'} said about ${surveyTitle}`}
         </h1>
@@ -173,9 +184,11 @@ export const ConsensusView: React.FC<ConsensusViewProps> = ({
           >
             Jump to story
           </button>
-          <Button size="sm" variant="secondary" onClick={loadEssay} disabled={loadingEssay}>
-            {loadingEssay ? 'Writing essay…' : essay ? 'Refresh essay' : 'Generate essay'}
-          </Button>
+          {!locked && (
+            <Button size="sm" variant="secondary" onClick={loadEssay} disabled={loadingEssay}>
+              {loadingEssay ? 'Writing essay…' : essay ? 'Refresh essay' : 'Generate essay'}
+            </Button>
+          )}
           {voteUrl && onCopyLink && (
             <button
               type="button"
@@ -370,7 +383,7 @@ export const ConsensusView: React.FC<ConsensusViewProps> = ({
         <h2 className="font-display text-xl text-ink-950">Seeing the forest and the trees</h2>
         <p className="font-serif text-[16px] text-ink-700 leading-[1.75]">
           {essay?.methods ||
-            'Delphi Interviewer collects conversational answers; statements are distilled for Agree / Disagree / Pass voting. Opinion groups come from clustering similar voting patterns. Consensus means similar support across groups; contested means groups disagree.'}
+            'The Precinct collects conversational answers; statements are distilled for Agree / Disagree / Pass voting. Opinion groups come from clustering similar voting patterns. Consensus means similar support across groups; contested means groups disagree.'}
         </p>
         <p className="text-xs text-ink-400 leading-relaxed">
           Inspired by public data essays such as{' '}

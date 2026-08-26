@@ -56,7 +56,8 @@ export type ViewMode =
   | 'RESULTS'
   | 'RESPOND'
   | 'VOTE'
-  | 'CONSENSUS';
+  | 'CONSENSUS'
+  | 'CHAPTERS';
 
 /** Product model ids — mapped to providers in services/geminiService.ts */
 export type AIModelType = 'herald' | 'oracle' | 'sibyl' | 'composer';

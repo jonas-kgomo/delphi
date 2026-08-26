@@ -1,4 +1,6 @@
-const PROFILE_KEY = 'delphi_google_profile';
+import { brandStorage } from './brand';
+
+const PROFILE_KEY = 'google_profile';
 
 export type AuthProfile = {
   firstName: string;
@@ -53,7 +55,7 @@ export function decodeGoogleCredential(credential: string): Partial<AuthProfile>
 
 export function saveGoogleProfile(profile: AuthProfile) {
   try {
-    localStorage.setItem(PROFILE_KEY, JSON.stringify(profile));
+    brandStorage.set(PROFILE_KEY, JSON.stringify(profile));
   } catch {
     /* ignore */
   }
@@ -61,7 +63,7 @@ export function saveGoogleProfile(profile: AuthProfile) {
 
 export function loadGoogleProfile(): AuthProfile | null {
   try {
-    const raw = localStorage.getItem(PROFILE_KEY);
+    const raw = brandStorage.get(PROFILE_KEY);
     if (!raw) return null;
     const parsed = JSON.parse(raw) as Partial<AuthProfile> & { name?: string };
     return normalizeProfile(parsed);
@@ -72,7 +74,7 @@ export function loadGoogleProfile(): AuthProfile | null {
 
 export function clearGoogleProfile() {
   try {
-    localStorage.removeItem(PROFILE_KEY);
+    brandStorage.remove(PROFILE_KEY);
   } catch {
     /* ignore */
   }

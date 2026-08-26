@@ -12,6 +12,12 @@ interface RotatingEarthProps {
   theme?: Theme;
   showHint?: boolean;
   interactive?: boolean;
+  /** >1 zooms into the sphere (Africa fills more of the disc) */
+  zoom?: number;
+  /** Auto-spin speed in degrees per second */
+  spinSpeed?: number;
+  /** Initial rotation [λ, φ, γ] — default centres Africa */
+  initialRotation?: EarthRotation;
   /** Fired every frame / drag so overlays can stay anchored */
   onFrame?: (rotation: EarthRotation) => void;
 }
@@ -98,6 +104,15 @@ function generateDotsInPolygon(feature: GeoJSON.Feature, dotSpacing = 18): [numb
   return dots;
 }
 
+const DEFAULT_ROTATION: EarthRotation = [-20, -5, 0];
+
+/** Visible disc radius and projection scale for a square globe viewport. */
+export function earthDiscScale(size: number, zoom = 1): { discR: number; scale: number } {
+  const discR = size / 2;
+  const scale = discR * Math.max(1, zoom);
+  return { discR, scale };
+}
+
 export const RotatingEarth: React.FC<RotatingEarthProps> = ({
   width = 420,
   height = 420,
@@ -105,6 +120,9 @@ export const RotatingEarth: React.FC<RotatingEarthProps> = ({
   theme = 'dark',
   showHint = false,
   interactive = true,
+  zoom = 1,
+  spinSpeed = 9,
+  initialRotation = DEFAULT_ROTATION,
   onFrame,
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -121,7 +139,8 @@ export const RotatingEarth: React.FC<RotatingEarthProps> = ({
 
     const containerWidth = width;
     const containerHeight = height;
-    const radius = Math.min(containerWidth, containerHeight) / 2.15;
+    const size = Math.min(containerWidth, containerHeight);
+    const { discR, scale } = earthDiscScale(size, zoom);
 
     const dpr = window.devicePixelRatio || 1;
     canvas.width = containerWidth * dpr;
@@ -130,19 +149,23 @@ export const RotatingEarth: React.FC<RotatingEarthProps> = ({
     canvas.style.height = `${containerHeight}px`;
     context.setTransform(dpr, 0, 0, dpr, 0, 0);
 
+    const cx = containerWidth / 2;
+    const cy = containerHeight / 2;
+
+    // scale > discR = zoomed into the sphere (land larger; edges clipped by the disc)
     const projection = d3
       .geoOrthographic()
-      .scale(radius)
-      .translate([containerWidth / 2, containerHeight / 2])
+      .scale(scale)
+      .translate([cx, cy])
       .clipAngle(90);
 
     const path = d3.geoPath().projection(projection).context(context);
 
     const allDots: DotData[] = [];
     let landFeatures: GeoJSON.FeatureCollection | null = null;
-    const rotation: EarthRotation = [20, -15, 0];
+    const rotation: EarthRotation = [initialRotation[0], initialRotation[1], initialRotation[2]];
     let dragging = false;
-    const degreesPerSecond = 12;
+    const degreesPerSecond = spinSpeed;
     let rafId = 0;
     let lastTs = 0;
     let cancelled = false;
@@ -153,15 +176,14 @@ export const RotatingEarth: React.FC<RotatingEarthProps> = ({
 
     const render = () => {
       context.clearRect(0, 0, containerWidth, containerHeight);
-      const currentScale = projection.scale();
-      const scaleFactor = currentScale / radius;
 
+      // Fixed rim — the globe “lens”, not the sphere radius
       context.beginPath();
-      context.arc(containerWidth / 2, containerHeight / 2, currentScale, 0, 2 * Math.PI);
+      context.arc(cx, cy, discR - 0.5, 0, 2 * Math.PI);
       context.fillStyle = palette.ocean;
       context.fill();
       context.strokeStyle = palette.stroke;
-      context.lineWidth = 1.5 * scaleFactor;
+      context.lineWidth = 1.5;
       context.stroke();
 
       if (!landFeatures) {
@@ -169,11 +191,16 @@ export const RotatingEarth: React.FC<RotatingEarthProps> = ({
         return;
       }
 
+      context.save();
+      context.beginPath();
+      context.arc(cx, cy, discR - 1, 0, 2 * Math.PI);
+      context.clip();
+
       const graticule = d3.geoGraticule();
       context.beginPath();
       path(graticule());
       context.strokeStyle = palette.graticule;
-      context.lineWidth = 0.8 * scaleFactor;
+      context.lineWidth = 0.7;
       context.stroke();
 
       context.beginPath();
@@ -181,22 +208,28 @@ export const RotatingEarth: React.FC<RotatingEarthProps> = ({
         path(feature);
       });
       context.strokeStyle = palette.stroke;
-      context.lineWidth = 0.9 * scaleFactor;
+      context.lineWidth = 1;
       context.stroke();
+
+      const [rx, ry] = projection.rotate();
+      const center: [number, number] = [-rx, -ry];
+      const dotR = 1.15;
 
       allDots.forEach((dot) => {
         const projected = projection([dot.lng, dot.lat]);
         if (!projected) return;
         const [x, y] = projected;
-        if (x < 0 || x > containerWidth || y < 0 || y > containerHeight) return;
-        const [rx, ry] = projection.rotate();
-        if (d3.geoDistance([dot.lng, dot.lat], [-rx, -ry]) > Math.PI / 2) return;
+        const dx = x - cx;
+        const dy = y - cy;
+        if (dx * dx + dy * dy > (discR - 2) * (discR - 2)) return;
+        if (d3.geoDistance([dot.lng, dot.lat], center) > Math.PI / 2) return;
         context.beginPath();
-        context.arc(x, y, 1.15 * scaleFactor, 0, 2 * Math.PI);
+        context.arc(x, y, dotR, 0, 2 * Math.PI);
         context.fillStyle = palette.dots;
         context.fill();
       });
 
+      context.restore();
       emitFrame();
     };
 
@@ -222,8 +255,10 @@ export const RotatingEarth: React.FC<RotatingEarthProps> = ({
         if (cancelled) return;
         landFeatures = (await response.json()) as GeoJSON.FeatureCollection;
         if (cancelled) return;
+        // Denser land dots for the orthographic disc
+        const spacing = 16;
         landFeatures.features.forEach((feature) => {
-          generateDotsInPolygon(feature, 18).forEach(([lng, lat]) => {
+          generateDotsInPolygon(feature, spacing).forEach(([lng, lat]) => {
             allDots.push({ lng, lat });
           });
         });
@@ -242,9 +277,9 @@ export const RotatingEarth: React.FC<RotatingEarthProps> = ({
       const startX = event.clientX;
       const startY = event.clientY;
       const startRotation: EarthRotation = [...rotation];
+      const sensitivity = 0.45;
 
       const handleMouseMove = (moveEvent: MouseEvent) => {
-        const sensitivity = 0.45;
         rotation[0] = startRotation[0] + (moveEvent.clientX - startX) * sensitivity;
         rotation[1] = Math.max(
           -90,
@@ -273,7 +308,21 @@ export const RotatingEarth: React.FC<RotatingEarthProps> = ({
       cancelAnimationFrame(rafId);
       canvas.removeEventListener('mousedown', handleMouseDown);
     };
-  }, [width, height, theme, interactive, palette.ocean, palette.stroke, palette.graticule, palette.dots]);
+  }, [
+    width,
+    height,
+    theme,
+    interactive,
+    zoom,
+    spinSpeed,
+    initialRotation[0],
+    initialRotation[1],
+    initialRotation[2],
+    palette.ocean,
+    palette.stroke,
+    palette.graticule,
+    palette.dots,
+  ]);
 
   if (error) {
     return (
