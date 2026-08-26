@@ -566,8 +566,7 @@ export const Landing: React.FC<LandingProps> = ({
       {/* ——— Development & technology ——— */}
       <section className="bg-cream px-4 sm:px-12 py-14 sm:py-20 border-b border-ink-800/5">
         <div className="max-w-5xl mx-auto space-y-10 sm:space-y-12">
-          <div className="max-w-2xl space-y-3">
-            <p className="text-[11px] uppercase tracking-[0.28em] text-ink-400">Also</p>
+          <div className="max-w-2xl">
             <h2 className="font-serif text-3xl sm:text-4xl font-semibold text-ink-950 tracking-tight">
               Precinct for Development, and Technology.
             </h2>
@@ -805,11 +804,11 @@ export const Landing: React.FC<LandingProps> = ({
           Government
         </a>
         <span className="text-white/20"> · </span>
-        <a href="#programmes" className="hover:text-white/70">
+        <a href="#development" className="hover:text-white/70">
           Development
         </a>
         <span className="text-white/20"> · </span>
-        <a href="#programmes" className="hover:text-white/70">
+        <a href="#technology" className="hover:text-white/70">
           Technology
         </a>
       </footer>
