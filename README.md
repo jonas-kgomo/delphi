@@ -6,25 +6,29 @@ Four civic tools in one place: deliberative polling, community survey, active el
 
 Same four jobs. A different civic bridge. Synthetic pilots — not official statistics.
 
-The file: **Brief** (the prompt) → **Instrument** (composed questions + model interviews) → **Deliberate** → **Record**.
+The file: **Brief** (the prompt) → **Instrument** (composed questions + model interviews) → **Deliberate** → **Essay**.
+
+Each precinct is a **label**: city beside topic (`Cape · Climate`). Never a fused “Records” name.
 
 ### Precinct for Government
 
-Departmental demonstration for South African partners. Lead file for DPWI ([publicworks.gov.za](http://publicworks.gov.za/)).
+Departmental demonstration for South African partners. Lead files for DPWI ([publicworks.gov.za](http://publicworks.gov.za/)).
 
-| File | Record | Open |
+| File | Label | Open |
 |------|--------|------|
-| KZN-PW-2026-01 | Natal Precinct Records — Public Works, KwaZulu-Natal | `?demo=government&chapter=natal` |
+| KZN-PW-2026-01 | Natal · Public Works | `?demo=government&chapter=natal` |
+| MP-LB-2026-04 | eMalahleni · Local Benefit | `?demo=government&chapter=emalahleni` |
 
 Index: `/government` (`?demo=government` and `?demo=publicworks` still work)
 
 ### Precinct for Development
 
-Climate, health, livelihoods, and community programmes. Health (e.g. malaria) starts from a Create template until it has a named file.
+Climate, health, livelihoods, and community programmes.
 
-| File | Record | Open |
+| File | Label | Open |
 |------|--------|------|
-| EC-CR-2026-02 | Cape Precinct Records — Climate Resilience, Eastern Cape | `?demo=development&chapter=cape` |
+| EC-CR-2026-02 | Cape · Climate | `?demo=development&chapter=cape` |
+| LP-MH-2026-05 | Vhembe · Malaria | `?demo=development&chapter=vhembe` |
 
 Index: `/development` (`?demo=development` and `?demo=climate` still work)
 
@@ -32,9 +36,10 @@ Index: `/development` (`?demo=development` and `?demo=climate` still work)
 
 How people meet tools — views, trust, and governance of AI and digital services.
 
-| File | Record | Open |
+| File | Label | Open |
 |------|--------|------|
-| KE-AI-2026-03 | Kenya Records — AI and Views | `?demo=technology&chapter=kenya` |
+| KE-AI-2026-03 | Kenya · Subjective Views | `?demo=technology&chapter=kenya` |
+| NG-ID-2026-06 | Lagos · Digital ID | `?demo=technology&chapter=lagos` |
 
 Index: `/technology` (`?demo=technology` and `?demo=ai` still work)
 

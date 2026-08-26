@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Survey, Question, QuestionType, AIModelType } from '../types';
 import { generateSurveyFromGoal } from '../services/geminiService';
 import { Button } from './ui/Button';
-import { Plus, Trash2, ArrowRight, Table, LayoutList, Layers, Users, Globe, MapPin, SquareMousePointer } from 'lucide-react';
+import { Plus, Trash2, ArrowRight, Table, LayoutList, Layers, Users, Globe, MapPin, SquareMousePointer, SlidersHorizontal, ChevronDown } from 'lucide-react';
 import { brandSession } from '../lib/brand';
 
 interface BuilderProps {
@@ -27,16 +27,28 @@ const TEMPLATES = [
     prompt: "Create an event registration survey for a tech conference, asking for dietary restrictions, workshop preferences, and travel details."
   },
   {
-    label: "Development · Climate",
+    label: "Natal · Public Works",
+    prompt: "Create a KwaZulu-Natal interview for the Department of Public Works and Infrastructure: how people experience clinics, schools, government offices, and the roads that serve them — what fails, who is told, whether anyone arrives, and whether EPWP work should stay with maintenance rather than only new builds. Deliberative, for a civic bridge from the ward to Pretoria. Not a satisfaction score."
+  },
+  {
+    label: "eMalahleni · Local Benefit",
+    prompt: "Create a Mpumalanga interview for the Department of Public Works and Infrastructure: how should this infrastructure project create opportunities for local workers and businesses? Job creation and infrastructure-led growth are explicit departmental priorities. Ask what makes temporary employment lead to lasting opportunity — a trade, a local supplier kept on, maintenance after handover — and whether local labour belongs in the tender, not only in the speech. Deliberative, not a jobs-announced score."
+  },
+  {
+    label: "Cape · Climate",
     prompt: "Create a community climate-resilience interview for the Eastern Cape: drought, flood, coastal change, informal adaptation (livestock, water points), and whether vernacular weather knowledge should count as official observation. Deliberative, not a yes/no on climate change."
   },
   {
-    label: "Technology · AI",
+    label: "Vhembe · Malaria",
+    prompt: "Create a community malaria interview for Vhembe District, Limpopo: what people actually use at night, where fever is treated first, whether indoor spraying should wait for people to be home, and how seasonal and cross-border work meets the programme calendar. Deliberative, not a quiz on mosquitoes."
+  },
+  {
+    label: "Kenya · Subjective Views",
     prompt: "Create an interview on subjective views of AI in a low-resource, multilingual setting: where people met the tool, what broke trust (language, connectivity, records leaving the room), job-loss fear, and who must sit in the governance room. Values and efficacy as lived — not a model benchmark."
   },
   {
-    label: "Development · Malaria",
-    prompt: "Create a public health survey to assess malaria awareness, prevention habits (bed nets), and recent symptoms in a rural community."
+    label: "Lagos · Digital ID",
+    prompt: "Create an interview on digital ID in Lagos: where people met NIN or SIM-NIN processes, what broke trust (distance to the centre, cut lines, failed biometrics), whether the ID should stay a credential rather than a gate, and who must sit in the governance room — including people who will never complete enrolment. Values as lived — not a dashboard of numbers issued."
   },
   {
     label: "A/B Testing (Tournament)",
@@ -66,6 +78,8 @@ export const Builder: React.FC<BuilderProps> = ({
   const [tone, setTone] = useState(TONES[0]);
   const [audience, setAudience] = useState("");
   const [region, setRegion] = useState("");
+  const [contextOpen, setContextOpen] = useState(false);
+  const contextRef = useRef<HTMLDivElement>(null);
 
   // Sync when parent selects a published survey (new draft remounts via key)
   useEffect(() => {
@@ -73,6 +87,22 @@ export const Builder: React.FC<BuilderProps> = ({
     if (survey?.id === existingSurvey.id) return;
     setSurvey(existingSurvey);
   }, [existingSurvey, survey?.id]);
+
+  useEffect(() => {
+    if (!contextOpen) return;
+    const onPointerDown = (e: MouseEvent) => {
+      if (!contextRef.current?.contains(e.target as Node)) setContextOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setContextOpen(false);
+    };
+    document.addEventListener('mousedown', onPointerDown);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('mousedown', onPointerDown);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [contextOpen]);
 
   const runGenerate = async (opts: {
     prompt: string;
@@ -98,6 +128,7 @@ export const Builder: React.FC<BuilderProps> = ({
       setError("We couldn't generate the survey. Please try clarifying your goal.");
     } finally {
       setIsGenerating(false);
+      setContextOpen(false);
     }
   };
 
@@ -168,30 +199,39 @@ export const Builder: React.FC<BuilderProps> = ({
     onSurveyCreated(updatedSurvey);
   };
 
+  const contextBits = [
+    domain !== DOMAINS[0] ? domain : null,
+    audience.trim() || null,
+    region.trim() || null,
+    tone !== TONES[0] ? tone : null,
+  ].filter(Boolean) as string[];
+  const contextLabel = contextBits.length ? contextBits.join(' · ') : 'Context';
+  const fieldClass =
+    'w-full h-9 px-2.5 rounded-lg border border-ink-200 bg-ink-50 text-sm text-ink-800 outline-none focus:border-ink-800 focus:ring-2 focus:ring-ink-100';
+
   if (!survey) {
     return (
-      <div className={`w-full ${embedded ? '' : 'max-w-4xl mx-auto'}`}>
-        <div className="flex flex-col items-center px-2 w-full mx-auto text-center">
+      <div className="w-full">
         {!embedded && (
-          <>
-            <h1 className="font-serif text-3xl sm:text-4xl md:text-5xl font-semibold text-ink-800 mb-2 tracking-tight">
+          <div className="mb-6">
+            <h1 className="font-serif text-3xl sm:text-4xl font-semibold text-ink-800 mb-2 tracking-tight">
               What do you want to learn?
             </h1>
-            <p className="text-ink-800/60 text-sm mb-6 max-w-lg">
-              How a service is used, whether a policy lands, what a community values — we compose the
+            <p className="text-ink-800/60 text-sm max-w-lg">
+              How a service is used, whether a policy lands, why a product is refused — we compose the
               interview.
             </p>
-          </>
+          </div>
         )}
-        
-        <div className="w-full relative mb-6 bg-white p-2 rounded-3xl border-2 border-ink-200 shadow-sm focus-within:border-ink-900 focus-within:ring-4 focus-within:ring-ink-100 transition-all">
-          <div className="flex items-start gap-3 px-6 pt-5">
-            <SquareMousePointer className="w-5 h-5 text-ink-300 mt-2 shrink-0" strokeWidth={1.75} />
-            <textarea 
+
+        <div className="w-full relative z-10 mb-5 bg-white rounded-2xl border border-ink-200 shadow-sm focus-within:border-ink-800 focus-within:ring-4 focus-within:ring-ink-100 transition-[border-color,box-shadow] duration-150">
+          <div className="flex items-start gap-3 px-4 sm:px-5 pt-4">
+            <SquareMousePointer className="w-5 h-5 text-ink-300 mt-1.5 shrink-0" strokeWidth={1.75} />
+            <textarea
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
               placeholder="e.g. How this ward reaches the clinic — and who they tell when it fails"
-              className="w-full pb-6 text-2xl sm:text-3xl font-serif text-ink-900 placeholder-ink-300 bg-transparent outline-none resize-none min-h-[140px]"
+              className="w-full pb-4 text-2xl sm:text-3xl font-serif text-ink-900 placeholder-ink-300 bg-transparent outline-none resize-none min-h-[140px]"
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && !e.shiftKey) {
                   e.preventDefault();
@@ -200,62 +240,110 @@ export const Builder: React.FC<BuilderProps> = ({
               }}
             />
           </div>
-          
-          {/* Intricate Configuration Bar */}
-          <div className="flex flex-wrap items-center gap-3 border-t border-ink-100 pt-4 px-4 pb-2">
-            <div className="flex items-center gap-2 bg-ink-50 px-3 py-2 rounded-lg border border-ink-200">
-                <Layers className="w-4 h-4 text-ink-400" />
-                <select 
-                    value={domain} 
-                    onChange={(e) => setDomain(e.target.value)}
-                    className="bg-transparent text-sm font-medium text-ink-700 outline-none cursor-pointer hover:text-ink-900"
-                >
-                    {DOMAINS.map(d => <option key={d} value={d}>{d}</option>)}
-                </select>
-            </div>
 
-            <div className="flex items-center gap-2 bg-ink-50 px-3 py-2 rounded-lg border border-ink-200">
-                <Users className="w-4 h-4 text-ink-400" />
-                <input 
-                    value={audience}
-                    onChange={(e) => setAudience(e.target.value)}
-                    placeholder="Audience (e.g. Students)"
-                    className="bg-transparent text-sm font-medium text-ink-700 outline-none placeholder-ink-400 w-40"
+          <div className="flex items-center gap-2 border-t border-ink-100 px-3 py-2">
+            <div ref={contextRef} className="relative min-w-0">
+              <button
+                type="button"
+                onClick={() => setContextOpen((open) => !open)}
+                aria-haspopup="dialog"
+                aria-expanded={contextOpen}
+                aria-label="Interview context"
+                className={`flex items-center gap-1.5 max-w-[min(100%,16rem)] sm:max-w-xs h-10 pl-2.5 pr-2 rounded-lg border text-sm font-medium transition-[transform,background-color,border-color] duration-150 active:scale-[0.97] ${
+                  contextOpen || contextBits.length
+                    ? 'border-ink-800 bg-ink-50 text-ink-900'
+                    : 'border-ink-200 bg-white text-ink-600 hover:border-ink-400 hover:text-ink-800'
+                }`}
+              >
+                <SlidersHorizontal className="w-3.5 h-3.5 shrink-0 text-ink-400" strokeWidth={2} />
+                <span className="truncate">{contextLabel}</span>
+                <ChevronDown
+                  className={`w-3.5 h-3.5 shrink-0 text-ink-400 transition-transform duration-150 ${contextOpen ? 'rotate-180' : ''}`}
                 />
-            </div>
+              </button>
 
-            <div className="flex items-center gap-2 bg-ink-50 px-3 py-2 rounded-lg border border-ink-200">
-                <MapPin className="w-4 h-4 text-ink-400" />
-                <input 
-                    value={region}
-                    onChange={(e) => setRegion(e.target.value)}
-                    placeholder="Region (e.g. California)"
-                    className="bg-transparent text-sm font-medium text-ink-700 outline-none placeholder-ink-400 w-40"
-                />
-            </div>
-
-            <div className="flex items-center gap-2 bg-ink-50 px-3 py-2 rounded-lg border border-ink-200">
-                <Globe className="w-4 h-4 text-ink-400" />
-                <select 
-                    value={tone} 
-                    onChange={(e) => setTone(e.target.value)}
-                    className="bg-transparent text-sm font-medium text-ink-700 outline-none cursor-pointer hover:text-ink-900"
+              {contextOpen && (
+                <div
+                  role="dialog"
+                  aria-label="Interview context"
+                  className="absolute left-0 bottom-full mb-2 w-[min(calc(100vw-2rem),20rem)] rounded-xl border border-ink-200 bg-white shadow-lg shadow-ink-950/5 p-3 z-50 origin-bottom-left"
+                  onMouseDown={(e) => e.stopPropagation()}
                 >
-                    {TONES.map(t => <option key={t} value={t}>{t}</option>)}
-                </select>
+                  <label className="block mb-2.5">
+                    <span className="flex items-center gap-1.5 text-[11px] uppercase tracking-[0.16em] text-ink-400 mb-1">
+                      <Layers className="w-3 h-3" />
+                      Domain
+                    </span>
+                    <select
+                      value={domain}
+                      onChange={(e) => setDomain(e.target.value)}
+                      className={fieldClass}
+                    >
+                      {DOMAINS.map((d) => (
+                        <option key={d} value={d}>
+                          {d}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <label className="block mb-2.5">
+                    <span className="flex items-center gap-1.5 text-[11px] uppercase tracking-[0.16em] text-ink-400 mb-1">
+                      <Users className="w-3 h-3" />
+                      Audience
+                    </span>
+                    <input
+                      value={audience}
+                      onChange={(e) => setAudience(e.target.value)}
+                      placeholder="e.g. ward residents"
+                      className={fieldClass}
+                    />
+                  </label>
+                  <label className="block mb-2.5">
+                    <span className="flex items-center gap-1.5 text-[11px] uppercase tracking-[0.16em] text-ink-400 mb-1">
+                      <MapPin className="w-3 h-3" />
+                      Region
+                    </span>
+                    <input
+                      value={region}
+                      onChange={(e) => setRegion(e.target.value)}
+                      placeholder="e.g. KwaZulu-Natal"
+                      className={fieldClass}
+                    />
+                  </label>
+                  <label className="block">
+                    <span className="flex items-center gap-1.5 text-[11px] uppercase tracking-[0.16em] text-ink-400 mb-1">
+                      <Globe className="w-3 h-3" />
+                      Tone
+                    </span>
+                    <select
+                      value={tone}
+                      onChange={(e) => setTone(e.target.value)}
+                      className={fieldClass}
+                    >
+                      {TONES.map((t) => (
+                        <option key={t} value={t}>
+                          {t}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                </div>
+              )}
             </div>
 
-            <div className="ml-auto">
-                <Button 
-                    onClick={() => void handleGenerate()} 
-                    disabled={!prompt.trim()} 
-                    isLoading={isGenerating}
-                    size="lg"
-                    className="rounded-xl px-8"
-                >
-                    {isAuthenticated ? 'Compose interview' : 'Compose — sign in'}
-                </Button>
-            </div>
+            <Button
+              onClick={() => void handleGenerate()}
+              disabled={!prompt.trim()}
+              isLoading={isGenerating}
+              className="ml-auto shrink-0 rounded-xl px-3 sm:px-4 text-sm gap-1.5 whitespace-nowrap active:scale-[0.97]"
+            >
+              <>
+                <span className="sm:hidden">Compose</span>
+                <span className="hidden sm:inline">Compose survey</span>
+                <ArrowRight className="w-3.5 h-3.5 opacity-70" strokeWidth={2} />
+                <span className="font-serif font-semibold">Interview</span>
+              </>
+            </Button>
           </div>
         </div>
 
@@ -264,27 +352,26 @@ export const Builder: React.FC<BuilderProps> = ({
             You can draft your goal freely. Sign in when you’re ready to generate.
           </p>
         )}
-        
+
         {error && <p className="text-red-500 mb-4">{error}</p>}
 
-        <div className="w-full mt-4">
-            <p className="text-xs font-semibold tracking-wider text-ink-400 uppercase mb-4 flex items-center justify-center gap-2">
-              <Layers className="w-3.5 h-3.5" />
-              Start from a template
-            </p>
-            <div className="flex flex-wrap gap-3 justify-center">
-                {TEMPLATES.map((t, i) => (
-                    <button 
-                        key={i}
-                        type="button"
-                        onClick={() => setPrompt(t.prompt)}
-                        className="px-5 py-3 bg-white border border-ink-200 rounded-full hover:border-ink-900 hover:bg-ink-50 transition-all text-sm font-medium text-ink-600 hover:text-ink-900"
-                    >
-                        {t.label}
-                    </button>
-                ))}
-            </div>
-        </div>
+        <div className="w-full mt-2">
+          <p className="text-[11px] font-semibold tracking-wider text-ink-400 uppercase mb-3 flex items-center gap-2">
+            <Layers className="w-3.5 h-3.5" />
+            Start from a template
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {TEMPLATES.map((t, i) => (
+              <button
+                key={i}
+                type="button"
+                onClick={() => setPrompt(t.prompt)}
+                className="px-3.5 py-1.5 bg-white border border-ink-200 rounded-full hover:border-ink-800 hover:bg-ink-50 text-sm font-medium text-ink-600 hover:text-ink-900 active:scale-[0.97] transition-[transform,background-color,border-color,color] duration-150"
+              >
+                {t.label}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
     );

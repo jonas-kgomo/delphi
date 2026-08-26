@@ -1,6 +1,8 @@
 import React, { useMemo, useState } from 'react';
 import { ArrowLeft, ArrowUpRight, Globe, Layers, MapPin, SquareMousePointer, Users } from 'lucide-react';
 import { PrecinctAvatar, UserAvatar } from './Avatars';
+import { PrecinctLabel } from './PrecinctLabel';
+import { CaseStudyCard } from './CaseStudyCard';
 import { PolisVote } from './PolisVote';
 import { ConsensusView } from './ConsensusView';
 import { BRAND_DOMAIN, BRAND_NAME } from '../lib/brand';
@@ -140,8 +142,8 @@ function SectorIndex({
       </h1>
       {kind === 'government' ? (
         <p className="mt-4 max-w-2xl text-ink-800/70 leading-relaxed">
-          Prepared for departmental partners. The file is for the Department of Public Works and
-          Infrastructure —{' '}
+          Prepared for departmental partners in South Africa. Public Works opens with
+          KwaZulu-Natal for the Department of Public Works and Infrastructure —{' '}
           <a
             href="http://publicworks.gov.za/"
             target="_blank"
@@ -151,9 +153,10 @@ function SectorIndex({
             publicworks.gov.za
             <ArrowUpRight size={12} className="inline ml-0.5 align-text-bottom" />
           </a>
-          . The tilemap is the country: every province has voices on public works, service delivery,
-          and water. Filter by topic. KwaZulu-Natal opens the full pilot — not an official
-          publication.
+          . Local benefit opens in eMalahleni — who is hired, who is paid, and
+          what lasts after the fence. The map is the country: every province has
+          voices on public works, service delivery, and water. Filter by topic. A
+          marked province opens the full pilot — not an official publication.
         </p>
       ) : (
         <p className="mt-4 max-w-2xl text-ink-800/70 leading-relaxed">{sector.summary}</p>
@@ -167,20 +170,14 @@ function SectorIndex({
         />
       )}
 
-      <ul className={`max-w-lg ${kind === 'government' ? 'mt-8' : 'mt-10'}`}>
+      <ul className={`space-y-3 max-w-xl ${kind === 'government' ? 'mt-8' : 'mt-10'}`}>
         {files.map((ch) => (
           <li key={ch.id}>
-            <FileCard chapter={ch} onOpen={() => onOpen(ch.id)} />
+            <CaseStudyCard chapter={ch} onOpen={() => onOpen(ch.id)} />
           </li>
         ))}
       </ul>
 
-      {kind === 'development' && (
-        <p className="mt-8 max-w-2xl text-sm text-ink-500 leading-relaxed">
-          Public health and other programmes use the same shape. Start those from Create — malaria
-          awareness is a template, not a file on this page yet.
-        </p>
-      )}
       {kind === 'technology' && (
         <p className="mt-8 max-w-2xl text-sm text-ink-500 leading-relaxed">
           Product and conference instruments live in Create. This page is the civic record of how
@@ -206,34 +203,6 @@ function SectorIndex({
   );
 }
 
-function FileCard({ chapter, onOpen }: { chapter: Chapter; onOpen: () => void }) {
-  return (
-    <button
-      type="button"
-      onClick={onOpen}
-      className="w-full h-full text-left bg-white border border-ink-200 rounded-2xl px-5 py-6 hover:border-ink-800 hover:bg-ink-50 active:scale-[0.99] transition-[transform,background-color,border-color] duration-150"
-    >
-      <span className="block text-[11px] uppercase tracking-[0.18em] text-ink-400">
-        {chapter.shortTitle} · {chapter.region}
-      </span>
-      <span className="block font-serif text-2xl font-semibold text-ink-950 mt-2">
-        {chapter.title}
-      </span>
-      <span className="block mt-2 text-sm text-ink-800/70 leading-relaxed">{chapter.summary}</span>
-      <span className="mt-4 flex flex-wrap gap-2">
-        {chapter.functions.map((fn) => (
-          <span
-            key={fn}
-            className="text-[10px] uppercase tracking-[0.16em] rounded-full border border-ink-200 px-2.5 py-0.5 text-ink-600"
-          >
-            {fn}
-          </span>
-        ))}
-      </span>
-    </button>
-  );
-}
-
 function ChapterFile({
   chapter,
   guestId,
@@ -250,7 +219,7 @@ function ChapterFile({
   onBack: () => void;
 }) {
   const [leaf, setLeaf] = useState<Leaf>(initialLeaf);
-  const mapRegion = chapter.id === 'natal' ? 'natal' : null;
+  const mapRegion = chapter.id === 'natal' || chapter.id === 'emalahleni' ? chapter.id : null;
   const [extraVotes, setExtraVotes] = useState<Vote[]>([]);
   const [extraUtterances, setExtraUtterances] = useState(chapter.utterances);
 
@@ -299,14 +268,16 @@ function ChapterFile({
 
       <div className="bg-white border border-ink-200 rounded-2xl overflow-hidden">
         <div className="px-5 sm:px-8 py-6 sm:py-8 border-b border-ink-100">
-          <p className="text-[11px] uppercase tracking-[0.18em] text-ink-400">
-            {`${chapter.shortTitle} · ${chapter.region}`}
-          </p>
-          <h1 className="mt-3 font-serif text-3xl sm:text-4xl font-semibold text-ink-950 tracking-tight">
-            {chapter.title}
+          <h1>
+            <PrecinctLabel city={chapter.city} topic={chapter.topic} size="page" />
           </h1>
-          <p className="mt-2 text-ink-800/70">{chapter.theme}</p>
-          <p className="mt-1 text-sm text-ink-500">
+          <p className="mt-3 text-ink-800/70">{chapter.theme}</p>
+          <p className="mt-2 text-sm text-ink-500">
+            {chapter.country}
+            {chapter.region !== chapter.city && chapter.region !== chapter.country
+              ? ` · ${chapter.region}`
+              : null}
+            {' · '}
             {chapter.partnerUrl ? (
               <a
                 href={chapter.partnerUrl}
@@ -320,9 +291,12 @@ function ChapterFile({
               chapter.partner
             )}
           </p>
+          <p className="mt-3 text-[11px] tabular-nums tracking-[0.08em] text-ink-400">
+            {chapter.fileNo}
+          </p>
         </div>
 
-        {isGov && mapRegion && (
+        {isGov && mapRegion && leaf !== 'record' && (
           <div className="px-5 sm:px-8 py-5 border-b border-ink-100 bg-cream/40">
             <SouthAfricaMap
               region={mapRegion}
@@ -375,6 +349,10 @@ function ChapterFile({
               votes={votes}
               initialEssay={chapter.essay}
               locked
+              mapRegion={isGov ? mapRegion || 'za' : undefined}
+              onOpenMapStage={(_id, nextLeaf) => {
+                if (nextLeaf) setLeaf(nextLeaf);
+              }}
             />
           )}
         </div>

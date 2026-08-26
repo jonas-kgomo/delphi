@@ -1,7 +1,8 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useId, useMemo, useRef, useState } from 'react';
+import * as d3 from 'd3';
 import {
-  PROVINCE_CELLS,
   PROVINCE_META,
+  PROVINCES_GEO_URL,
   STAGE_LABEL,
   TOPIC_LABEL,
   voicesForRegion,
@@ -22,15 +23,46 @@ const STAGE_DOT: Record<MapStage, string> = {
   record: 'bg-leaf-500',
 };
 
+const STAGE_RING: Record<MapStage, string> = {
+  instrument: 'border-ink-800',
+  deliberate: 'border-ember-400',
+  record: 'border-leaf-400',
+};
+
 const TOPICS: (MapTopic | 'all')[] = ['all', 'infrastructure', 'service', 'water'];
 
 const FOCUS: Partial<Record<MapRegion, ProvinceCode>> = {
   natal: 'KZN',
+  emalahleni: 'MP',
 };
+
+const CODES: ProvinceCode[] = ['LIM', 'NW', 'GP', 'MP', 'NC', 'FS', 'KZN', 'WC', 'EC'];
+
+let provincesPromise: Promise<GeoJSON.FeatureCollection> | null = null;
+
+function loadProvinces() {
+  if (!provincesPromise) {
+    provincesPromise = fetch(PROVINCES_GEO_URL)
+      .then((r) => {
+        if (!r.ok) throw new Error('map');
+        return r.json() as Promise<GeoJSON.FeatureCollection>;
+      })
+      .catch(() => {
+        provincesPromise = null;
+        return { type: 'FeatureCollection', features: [] };
+      });
+  }
+  return provincesPromise;
+}
+
+function featureCode(feature: GeoJSON.Feature): ProvinceCode | null {
+  const raw = (feature.id || feature.properties?.code) as string | undefined;
+  return CODES.includes(raw as ProvinceCode) ? (raw as ProvinceCode) : null;
+}
 
 interface SouthAfricaMapProps {
   region?: MapRegion;
-  onOpenChapter?: (id: Extract<ChapterId, 'natal'>, leaf?: Leaf) => void;
+  onOpenChapter?: (id: Extract<ChapterId, 'natal' | 'emalahleni'>, leaf?: Leaf) => void;
   className?: string;
 }
 
@@ -39,12 +71,41 @@ export const SouthAfricaMap: React.FC<SouthAfricaMapProps> = ({
   onOpenChapter,
   className = '',
 }) => {
+  const wrapRef = useRef<HTMLDivElement>(null);
+  const cutoutId = useId().replace(/:/g, '');
+  const [size, setSize] = useState({ w: 520, h: 560 });
+  const [land, setLand] = useState<GeoJSON.FeatureCollection | null>(null);
   const pool = useMemo(() => voicesForRegion('za'), []);
   const [topic, setTopic] = useState<MapTopic | 'all'>('all');
   const visible = useMemo(() => voicesForTopic(pool, topic), [pool, topic]);
   const [activeId, setActiveId] = useState<string | null>(null);
 
   const focus = FOCUS[region];
+
+  useEffect(() => {
+    let cancelled = false;
+    loadProvinces().then((fc) => {
+      if (!cancelled) setLand(fc);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    const el = wrapRef.current;
+    if (!el) return;
+    const measure = () => {
+      const w = Math.max(280, el.clientWidth || 520);
+      const ratio = focus ? 1.15 : 1.18;
+      const h = Math.max(focus ? 340 : 420, Math.round(w * ratio));
+      setSize({ w, h });
+    };
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [region, focus]);
 
   useEffect(() => {
     const preferred = focus
@@ -75,6 +136,29 @@ export const SouthAfricaMap: React.FC<SouthAfricaMapProps> = ({
     setActiveId(list[(idx + 1) % list.length].id);
   };
 
+  const projection = useMemo(() => {
+    // Bleed left/right/bottom so the cutout stays large; keep a top margin so Limpopo is not clipped.
+    const xBleed = focus ? 10 : Math.round(size.w * -0.14);
+    const top = focus ? 20 : 28;
+    const yBottom = focus ? size.h - 10 : size.h + Math.round(size.h * 0.1);
+    const fit =
+      focus && land
+        ? land.features.find((f) => featureCode(f) === focus) || land
+        : land;
+    const proj = d3.geoMercator();
+    if (fit) {
+      proj.fitExtent(
+        [
+          [xBleed, top],
+          [size.w - xBleed, yBottom],
+        ],
+        fit
+      );
+    }
+    return proj;
+  }, [land, focus, size.w, size.h]);
+
+  const path = useMemo(() => d3.geoPath(projection), [projection]);
   const placesHere = active ? visible.filter((v) => v.province === active.province) : [];
 
   return (
@@ -96,78 +180,110 @@ export const SouthAfricaMap: React.FC<SouthAfricaMapProps> = ({
         ))}
       </div>
 
-      <div className="grid lg:grid-cols-[1fr_16.5rem]">
-        <div className="bg-cream px-3 sm:px-8 py-5 sm:py-8 flex items-center justify-center overflow-x-auto">
-          <div
-            className="grid gap-[3px] sm:gap-1"
-            style={{ gridTemplateColumns: 'repeat(4, minmax(2.55rem, 4.75rem))' }}
-            role="list"
-            aria-label="South Africa province tilemap"
+      <div className="grid lg:grid-cols-[minmax(22rem,1.2fr)_minmax(18rem,0.95fr)]">
+        <div ref={wrapRef} className="relative bg-cream min-h-[24rem] sm:min-h-[32rem] overflow-hidden">
+          <svg
+            width={size.w}
+            height={size.h}
+            viewBox={`0 0 ${size.w} ${size.h}`}
+            className="block w-full h-auto"
+            aria-label="South Africa — voices by province"
           >
-            {PROVINCE_CELLS.map((cell, i) => {
-              const live = byProvince.get(cell.code);
-              const on = active?.province === cell.code;
-              const inFocus = !focus || cell.code === focus;
-              const muted = !live?.length || !inFocus;
-              const meta = PROVINCE_META[cell.code];
-              return (
-                <button
-                  key={`${cell.code}-${cell.col}-${cell.row}-${i}`}
-                  type="button"
-                  role="listitem"
-                  disabled={!live?.length}
-                  onClick={() => selectProvince(cell.code)}
-                  style={{ gridColumn: cell.col + 1, gridRow: cell.row + 1 }}
-                  className={`aspect-square rounded-lg border text-left p-1.5 sm:p-2 active:scale-[0.97] transition-[transform,background-color,border-color,opacity] duration-150 ${
-                    muted
-                      ? 'bg-white/70 border-ink-100 text-ink-300'
-                      : on
-                        ? 'bg-ink-950 text-white border-ink-950'
-                        : 'bg-white border-ink-200 text-ink-800 hover:border-ink-800'
-                  } ${!inFocus && live?.length ? 'opacity-40' : ''}`}
-                  aria-label={meta.name}
-                >
-                  {cell.label && (
-                    <span className="block text-[10px] sm:text-[11px] font-semibold tracking-wide">
-                      {cell.code}
-                    </span>
-                  )}
-                  {cell.label && live && live.length > 0 && (
-                    <span className="flex gap-0.5 pt-1.5">
-                      {live.slice(0, 4).map((v) => (
-                        <span
-                          key={v.id}
-                          className={`w-1.5 h-1.5 rounded-full ${on ? 'bg-white/80' : STAGE_DOT[v.stage]}`}
-                        />
-                      ))}
-                    </span>
-                  )}
-                </button>
-              );
-            })}
-          </div>
+            <defs>
+              <filter id={cutoutId} x="-8%" y="-8%" width="116%" height="116%">
+                <feDropShadow dx="0" dy="6" stdDeviation="8" floodColor="#0B252E" floodOpacity="0.12" />
+              </filter>
+            </defs>
+            <g filter={`url(#${cutoutId})`}>
+              {land?.features.map((feature) => {
+                const code = featureCode(feature);
+                if (!code) return null;
+                const live = byProvince.get(code);
+                const on = active?.province === code;
+                const inFocus = !focus || code === focus;
+                const muted = !live?.length || !inFocus;
+                const d = path(feature) || undefined;
+                return (
+                  <path
+                    key={code}
+                    d={d}
+                    role="button"
+                    tabIndex={live?.length ? 0 : -1}
+                    aria-label={PROVINCE_META[code].name}
+                    onClick={() => live?.length && selectProvince(code)}
+                    onKeyDown={(e) => {
+                      if (!live?.length) return;
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        selectProvince(code);
+                      }
+                    }}
+                    className={`transition-[fill,stroke,opacity] duration-150 ${
+                      live?.length ? 'cursor-pointer' : 'cursor-default'
+                    }`}
+                    fill={muted ? '#ffffff' : on ? '#0B252E' : '#ffffff'}
+                    stroke={on ? '#0B252E' : '#0B252E'}
+                    strokeWidth={on ? 1.4 : 0.85}
+                    strokeLinejoin="round"
+                    opacity={!inFocus ? 0.38 : muted ? 0.7 : 1}
+                  />
+                );
+              })}
+            </g>
+          </svg>
+
+          {land && visible.map((v) => {
+            const pt = projection([v.lng, v.lat]);
+            if (!pt) return null;
+            const [x, y] = pt;
+            if (x < -16 || y < -16 || x > size.w + 16 || y > size.h + 16) return null;
+            const on = v.id === active?.id;
+            const inFocus = !focus || v.province === focus;
+            return (
+              <button
+                key={v.id}
+                type="button"
+                onClick={() => setActiveId(v.id)}
+                className={`absolute z-10 -translate-x-1/2 -translate-y-1/2 active:scale-[0.97] transition-[transform,opacity] duration-150 ${
+                  inFocus ? '' : 'opacity-40'
+                }`}
+                style={{ left: x, top: y }}
+                aria-label={`${v.place}: ${STAGE_LABEL[v.stage]}`}
+              >
+                <img
+                  src={v.picture}
+                  alt=""
+                  className={`rounded-full object-cover border-2 shadow-sm ${
+                    on
+                      ? `w-9 h-9 sm:w-10 sm:h-10 ${STAGE_RING[v.stage]}`
+                      : 'w-7 h-7 sm:w-8 sm:h-8 border-white'
+                  }`}
+                />
+              </button>
+            );
+          })}
         </div>
 
-        <aside className="border-t lg:border-t-0 lg:border-l border-ink-100 p-5 sm:p-6 flex flex-col justify-center bg-white min-h-[16rem]">
+        <aside className="border-t lg:border-t-0 lg:border-l border-ink-100 px-6 sm:px-8 lg:px-10 py-7 sm:py-8 flex flex-col justify-center bg-white min-h-[16rem]">
           {active ? (
-            <>
+            <div key={active.id} className="hearing-swap">
               <p className="text-[11px] uppercase tracking-[0.2em] text-ink-400">
                 {TOPIC_LABEL[active.topic]} · {PROVINCE_META[active.province].name}
               </p>
               <p className="mt-1 text-xs text-ink-500">
                 {STAGE_LABEL[active.stage]} · {active.place}
               </p>
-              <blockquote className="mt-3 font-serif text-lg leading-snug text-ink-950">
+              <blockquote className="mt-4 font-serif text-xl sm:text-2xl leading-snug text-ink-950">
                 “{active.quote}”
               </blockquote>
               {placesHere.length > 1 && (
-                <div className="mt-4 flex flex-wrap gap-1.5">
+                <div className="mt-5 flex flex-wrap gap-1.5">
                   {placesHere.map((v) => (
                     <button
                       key={v.id}
                       type="button"
                       onClick={() => setActiveId(v.id)}
-                      className={`px-2 py-0.5 text-[11px] rounded-full border active:scale-[0.97] transition-transform duration-150 ${
+                      className={`px-2.5 py-1 text-[11px] rounded-full border active:scale-[0.97] transition-transform duration-150 ${
                         v.id === active.id
                           ? 'bg-ink-950 text-white border-ink-950'
                           : 'border-ink-200 text-ink-600 hover:border-ink-800'
@@ -182,14 +298,14 @@ export const SouthAfricaMap: React.FC<SouthAfricaMapProps> = ({
                 <button
                   type="button"
                   onClick={() => onOpenChapter(active.chapterId!, active.stage)}
-                  className="mt-5 self-start px-4 py-2 text-sm font-medium rounded-full bg-ink-950 text-white hover:bg-ink-800 active:scale-[0.97] transition-transform duration-150"
+                  className="mt-6 self-start px-4 py-2 text-sm font-medium rounded-full bg-ink-950 text-white hover:bg-ink-800 active:scale-[0.97] transition-transform duration-150"
                 >
                   Open this stage
                 </button>
               ) : (
-                <p className="mt-5 text-xs text-ink-400">Pilot file not opened for this province yet.</p>
+                <p className="mt-6 text-xs text-ink-400">Pilot file not opened for this province yet.</p>
               )}
-            </>
+            </div>
           ) : (
             <p className="text-sm text-ink-500">No voices on this topic.</p>
           )}
@@ -206,9 +322,7 @@ export const SouthAfricaMap: React.FC<SouthAfricaMapProps> = ({
             {STAGE_LABEL[stage]}
           </span>
         ))}
-        <span className="text-[11px] text-ink-400 ml-auto hidden sm:inline">
-          Tilemap of South Africa
-        </span>
+        <span className="text-[11px] text-ink-400 ml-auto hidden sm:inline">South Africa</span>
       </div>
     </div>
   );

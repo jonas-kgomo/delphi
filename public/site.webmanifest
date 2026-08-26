@@ -1,7 +1,7 @@
 {
   "name": "The Precinct",
   "short_name": "Precinct",
-  "description": "A living archive of conversations.",
+  "description": "Structured conversations for better decisions.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#F1F6EF",

@@ -8,7 +8,7 @@ import {
 } from '../types';
 import { PRECINCT_FUNCTIONS } from './brand';
 
-export type ChapterId = 'natal' | 'cape' | 'kenya';
+export type ChapterId = 'natal' | 'emalahleni' | 'cape' | 'vhembe' | 'kenya' | 'lagos';
 export type DemoKind = 'government' | 'development' | 'technology';
 export type ChapterAudience = DemoKind;
 export type FunctionWard = (typeof PRECINCT_FUNCTIONS)[number]['ward'];
@@ -25,9 +25,9 @@ export const SECTORS: Record<
     navShort: 'Gov',
     eyebrow: 'For government',
     title: 'Precinct for Government',
-    lead: 'Departmental records. The civic bridge is to the state.',
+    lead: 'Surface where residents and the department already agree.',
     summary:
-      'Infrastructure, service delivery, and the file that ward and Pretoria should read together.',
+      'Infrastructure, service delivery, local economic benefit — the file that ward and Pretoria should read together.',
   },
   development: {
     id: 'development',
@@ -71,14 +71,31 @@ export type SeededInterview = {
   messages: SeededMessage[];
 };
 
+/** City sits aside the topic — never fuse them into “Cape Precinct Records”. */
+export function makePrecinctLabel(city: string, topic: string) {
+  return {
+    city,
+    topic,
+    title: `${topic} Precinct`,
+    label: `${city} · ${topic}`,
+  };
+}
+
 export type Chapter = {
   id: ChapterId;
   audience: ChapterAudience;
   fileNo: string;
+  /** Place name shown to the left of the topic */
+  city: string;
+  /** Subject of the precinct — Climate, Public Works, Local Benefit, Malaria, Digital ID */
+  topic: string;
   title: string;
+  /** Plain “Cape · Climate” for lists and SEO */
+  label: string;
   shortTitle: string;
   theme: string;
   region: string;
+  country: string;
   partner: string;
   partnerUrl?: string;
   preparedFor: string;
@@ -260,7 +277,7 @@ const kenyaBlocs: VoteValue[][] = [
 
 const natalSurvey: Survey = {
   id: 'chapter-natal',
-  title: 'Natal Precinct Records — infrastructure & service delivery',
+  title: 'Public Works Precinct — infrastructure & service delivery',
   description:
     'KwaZulu-Natal pilot: citizen feedback on public buildings, roads to state assets, and local service delivery — for municipal authorities and the Department of Public Works and Infrastructure.',
   questions: [
@@ -285,7 +302,7 @@ const natalSurvey: Survey = {
 
 const capeSurvey: Survey = {
   id: 'chapter-cape',
-  title: 'Cape Precinct Records — climate observations & adaptation',
+  title: 'Climate Precinct — observations & adaptation',
   description:
     'Eastern Cape initiative: community-led observations of drought, flood, and coastal change, and the adaptation strategies people already practise.',
   questions: [
@@ -309,7 +326,7 @@ const capeSurvey: Survey = {
 
 const kenyaSurvey: Survey = {
   id: 'chapter-kenya',
-  title: 'Kenya Records — views on AI in low-resource, culturally rich settings',
+  title: 'Subjective Views Precinct — AI in low-resource, culturally rich settings',
   description:
     'Public perceptions, workforce experience, and values around AI deployment — to inform equitable tech governance.',
   questions: [
@@ -345,7 +362,7 @@ const natalEssay: DataEssay = {
   tensionEssay:
     'Tension gathers around whether existing municipal call centres already do this work. One group treats a new record as duplication. Another treats the call centre as a drawer that never opens. A smaller split appears on whether councillors can be trusted with the same file as the department. The instrument does not resolve that; it makes the disagreement visible before a policy is copied from one municipality to the next.',
   closing:
-    'For DPWI and municipal authorities, the useful number is not a satisfaction score. It is whether people still believe a report will produce a visit. Natal Precinct Records is built to watch that belief move — before and after deliberation, and before the next handover.',
+    'For DPWI and municipal authorities, the useful number is not a satisfaction score. It is whether people still believe a report will produce a visit. Natal · Public Works Precinct is built to watch that belief move — before and after deliberation, and before the next handover.',
   bridges: [
     'Tie EPWP work to maintenance of existing state assets',
     'A single visit restores willingness to report',
@@ -370,7 +387,7 @@ const capeEssay: DataEssay = {
   tensionEssay:
     'The hard split is relocation. “Resilience corridors” read to one group as safety and to another as dispossession. A second tension is time: money that arrives after the rains cannot be evaluated as if it arrived on time. Deliberation here is not a poll on belief in climate change. It is a structured argument about land, livestock, and whose marks count.',
   closing:
-    'Cape Precinct Records treats community observation as the first instrument, not the appendix. The civic bridge is to regional policy — if the essay can carry vernacular and informal gauges without translating them out of existence.',
+    'Cape · Climate Precinct treats community observation as the first instrument, not the appendix. The civic bridge is to regional policy — if the essay can carry vernacular and informal gauges without translating them out of existence.',
   bridges: [
     'Community gauges and shoreline marks as official observation',
     'Adaptation already practised: livestock, water, warning through neighbours',
@@ -395,7 +412,7 @@ const kenyaEssay: DataEssay = {
   tensionEssay:
     'Trust in a chatbot versus a known clerk splits the room. One group will use a faster prompt; another treats the clerk as the institution. Job-loss fear is not dissolved by usefulness. The contested question is not “AI: yes or no.” It is who remains in the room, and who owns the file.',
   closing:
-    'Kenya Records is an elicitation and a survey of subjective view — efficacy as lived, not as a vendor slide. The civic bridge is to regulators and ministries who need those views before a deployment is copied from a high-connectivity pilot.',
+    'Kenya · Subjective Views Precinct is an elicitation and a survey of lived view — efficacy as lived, not as a vendor slide. The civic bridge is to regulators and ministries who need those views before a deployment is copied from a high-connectivity pilot.',
   bridges: [
     'Design for intermittent data and languages actually spoken',
     'Keep records in the room',
@@ -749,19 +766,654 @@ const kenyaInterviews: SeededInterview[] = [
   },
 ];
 
+const emalahleniLines: Line[] = [
+  {
+    text: 'The project should create work for local people and local businesses — not only a speech at the fence.',
+    reasons: [
+      'In eMalahleni the trucks came from elsewhere. The dust stayed here.',
+      'A local welder who is not on the supplier list is not a local benefit.',
+    ],
+  },
+  {
+    text: 'A contractor from elsewhere can still be required to hire and buy here.',
+    reasons: ['The main contract can travel. The labour and the cement should not have to.'],
+  },
+  {
+    text: 'Temporary site jobs are not opportunity unless a skill or a next contract stays.',
+    reasons: ['Three months on the fence is a stipend. It is not a trade.'],
+  },
+  {
+    text: 'What makes temporary employment last is a certificate, a supplier who is kept on, and maintenance after handover.',
+    reasons: ['If the work dies when the ribbon is cut, the growth was a headcount on a slide.'],
+  },
+  {
+    text: 'Job numbers at the sod-turning are not the same as work that remains.',
+    reasons: ['They counted us on the day. They did not count us in the year.'],
+  },
+  {
+    text: 'The department and the ward should read one file on who was hired and who was paid.',
+    reasons: ['If Pretoria sees a different list to the street, the next tender will look the same.'],
+  },
+];
+
+const emalahleniBlocs: VoteValue[][] = [
+  [A, A, A, A, A, A],
+  [A, A, A, A, A, A],
+  [A, A, A, D, A, A],
+  [A, A, A, A, P, A],
+  [D, D, A, D, D, D],
+  [D, A, D, A, D, A],
+  [A, A, A, A, A, A],
+  [A, P, A, A, A, A],
+];
+
+const vhembeLines: Line[] = [
+  {
+    text: 'Awareness is not the same as a net that is still whole.',
+    reasons: [
+      'We can recite the radio message. The net has holes from last season.',
+      'The poster is in the clinic. The sleeping room is not.',
+    ],
+  },
+  {
+    text: 'People sleep outside in the heat; the net stays in the house.',
+    reasons: ['The fever does not wait for a cooler night.'],
+  },
+  {
+    text: 'Fever is treated at the spaza first. The clinic is a second trip.',
+    reasons: ['Musina is far when the child is already hot. The shop is on the path.'],
+  },
+  {
+    text: 'Seasonal workers bring the fever and leave before the spray team.',
+    reasons: ['The calendar of work is not the calendar of indoor residual spray.'],
+  },
+  {
+    text: 'Community spray should wait for the people, not only the programme month.',
+    reasons: ['An empty house sprayed is a statistic, not a round.'],
+  },
+  {
+    text: 'Cross-border movement is how the district lives — not a compliance problem.',
+    reasons: ['Families cross to Zimbabwe and back. The parasite does not queue at Beitbridge.'],
+  },
+];
+
+const vhembeBlocs: VoteValue[][] = [
+  [A, A, A, A, A, A],
+  [A, A, A, A, A, A],
+  [A, A, A, A, P, A],
+  [A, D, A, A, A, A],
+  [D, D, D, P, D, D],
+  [D, A, D, A, D, P],
+  [A, A, A, A, A, A],
+  [A, A, A, A, D, A],
+];
+
+const lagosLines: Line[] = [
+  {
+    text: 'A number that requires a trip to Ikeja is not national.',
+    reasons: [
+      'The market does not close so someone can sit in a capture centre.',
+      'Transport to the centre costs more than the ID is supposed to save.',
+    ],
+  },
+  {
+    text: 'SIM-NIN linkage locked people out of the phone they already had.',
+    reasons: ['The line died in the week we needed it for work.'],
+  },
+  {
+    text: 'Biometrics fail on worn hands and on the elderly.',
+    reasons: ['The scanner wants a print the work has already taken.'],
+  },
+  {
+    text: 'People trust a known agent more than a portal.',
+    reasons: ['The agent in Agege has a face. The website has a queue that never moves.'],
+  },
+  {
+    text: 'Digital ID can help if it stays a credential — not a gate in front of every service.',
+    reasons: ['A number that unlocks a clinic is different from a number that locks the clinic.'],
+  },
+  {
+    text: 'Governance must include people who will never complete enrolment.',
+    reasons: ['My mother will not finish the capture. She still needs the hospital.'],
+  },
+];
+
+const lagosBlocs: VoteValue[][] = [
+  [A, A, A, A, A, A],
+  [A, A, A, A, A, A],
+  [A, A, A, A, P, A],
+  [A, D, A, A, A, A],
+  [D, D, D, P, D, D],
+  [D, A, D, D, A, P],
+  [A, A, A, A, A, A],
+  [A, A, A, A, D, A],
+];
+
+const emalahleniSurvey: Survey = {
+  id: 'chapter-emalahleni',
+  title: 'Local Benefit Precinct — workers, businesses, and work that outlasts the fence',
+  description:
+    'Mpumalanga pilot: how an infrastructure project should create opportunities for local workers and businesses, and what makes temporary employment lead to lasting opportunity — for municipal authorities and the Department of Public Works and Infrastructure.',
+  questions: [
+    q('e0', 'On the last public infrastructure project near you, who actually got the work?', QuestionType.MultipleChoice, {
+      options: [
+        'Local workers on the site',
+        'Local businesses supplying the site',
+        'A contractor from elsewhere',
+        'EPWP / short contracts only',
+        'I don’t know',
+      ],
+    }),
+    q('e1', 'How much lasting opportunity did that project leave behind?', QuestionType.Scale, {
+      minLabel: 'Gone when the fence came down',
+      maxLabel: 'Skills and work that stayed',
+    }),
+    q('e2', 'What makes temporary employment lead to lasting opportunity?', QuestionType.MultipleChoice, {
+      options: [
+        'A trade or certificate',
+        'A local supplier kept on',
+        'Maintenance jobs after handover',
+        'A chance to bid next time',
+        'Nothing lasts',
+      ],
+    }),
+    q(
+      'e3',
+      'How should this infrastructure project create opportunities for local workers and businesses?',
+      QuestionType.LongText,
+    ),
+    q(
+      'e4',
+      'Should local labour and local suppliers be a condition of the tender — not only a speech at the sod-turning?',
+      QuestionType.YesNo,
+    ),
+    q('e5', 'Who should see this record?', QuestionType.Matrix, {
+      rows: ['Ward councillor', 'Municipality', 'Provincial Public Works', 'National DPWI'],
+      options: ['Must see it', 'Useful', 'Not needed'],
+    }),
+  ],
+};
+
+const vhembeSurvey: Survey = {
+  id: 'chapter-vhembe',
+  title: 'Malaria Precinct — nets, fever, and the season the spray misses',
+  description:
+    'Vhembe District initiative: malaria awareness against the habits people actually keep — nets, first treatment, indoor spray, and cross-border work.',
+  questions: [
+    q('m0', 'What do you actually use to keep mosquitoes off at night?', QuestionType.MultipleChoice, {
+      options: ['A net that is still whole', 'A net with holes', 'Coils / spray', 'We sleep outside / no net', 'The house was sprayed', 'Other'],
+    }),
+    q('m1', 'How prepared is the household for the next malaria season?', QuestionType.Scale, {
+      minLabel: 'Not prepared',
+      maxLabel: 'We have a working plan',
+    }),
+    q('m2', 'When someone has fever, where do you go first?', QuestionType.MultipleChoice, {
+      options: ['Clinic or hospital', 'Spaza / chemist', 'Traditional healer', 'We wait', 'We cross the border for care'],
+    }),
+    q('m3', 'Describe one prevention habit that already works here — even if it is informal.', QuestionType.LongText),
+    q('m4', 'Should indoor spraying wait until people are home, not only until the programme month?', QuestionType.YesNo),
+    q('m5', 'What should the district protect first this season?', QuestionType.MultipleChoice, {
+      options: ['Nets that last', 'Spray that meets the household', 'Clinic hours', 'Information in Tshivenda', 'Care for seasonal workers'],
+    }),
+  ],
+};
+
+const lagosSurvey: Survey = {
+  id: 'chapter-lagos',
+  title: 'Digital ID Precinct — enrolment, exclusion, and the number as a gate',
+  description:
+    'Lagos record of how people meet national identity systems: capture centres, SIM-NIN linkage, biometrics, and who is still a person without a number.',
+  questions: [
+    q('l0', 'Where have you met a national ID or NIN process recently — if at all?', QuestionType.MultipleChoice, {
+      options: ['Capture centre', 'Bank or SIM registration', 'Government service', 'Workplace', 'Agent / tout', 'I have not'],
+    }),
+    q('l1', 'When it worked, how useful was it?', QuestionType.Scale, {
+      minLabel: 'Locked me out',
+      maxLabel: 'Genuinely helped',
+    }),
+    q('l2', 'What broke trust fastest?', QuestionType.MultipleChoice, {
+      options: ['Distance / cost of the centre', 'SIM cut off', 'Biometrics failed', 'It replaced a person', 'A tout in the queue', 'I still trust it'],
+    }),
+    q('l3', 'In your own words: should this kind of ID be required where you live? Why?', QuestionType.LongText),
+    q('l4', 'Should a digital ID stay a credential you carry — not a gate in front of every service?', QuestionType.YesNo),
+    q('l5', 'Whose view must be in the governance room?', QuestionType.Matrix, {
+      rows: ['Market traders and informal workers', 'Elderly people', 'Capture-centre staff', 'National regulators', 'Telecoms / banks'],
+      options: ['Must be present', 'Consulted', 'Optional'],
+    }),
+  ],
+};
+
+const emalahleniEssay: DataEssay = {
+  headline: 'The count on the day is not the work in the year.',
+  lede:
+    'In this Mpumalanga record, people do not argue about whether infrastructure should create jobs. Job creation and infrastructure-led growth are already departmental priorities. They argue about whether the work is local, and whether it lasts after the fence comes down.',
+  coexistence:
+    'Pride in a new building and a closed supplier list sit in the same town. The same person who took three months on the site still wants a certificate, a next bid, and maintenance that stays. Temporary employment is not refused. It is refused as the whole story.',
+  methods:
+    'Synthetic pilot record for demonstration. Eight constructed voter patterns on six statements distilled from interview themes. Consensus means similar support across groups; contested means groups pull apart. Not official DPWI employment statistics.',
+  bridgeEssay:
+    'A wide bridge holds on three points. First, local workers and local businesses should get the work, not only the speech. Second, a main contractor from elsewhere can still be required to hire and buy here. Third, temporary employment leads to lasting opportunity when a trade, a supplier list, and post-handover maintenance remain — and when the ward and Pretoria read one file on who was hired and who was paid.',
+  tensionEssay:
+    'Tension gathers around whether a headcount at the sod-turning counts as growth. One group treats EPWP months as a start. Another treats them as a closed loop: counted on the day, gone in the year. A smaller split appears on whether local-content conditions belong in the tender or only in the speech. The instrument does not resolve that; it makes the disagreement visible before the next contract is copied from one site to the next.',
+  closing:
+    'For DPWI and municipal authorities, the useful number is not jobs announced. It is whether people still believe the next project will leave work and suppliers behind. eMalahleni · Local Benefit Precinct is built to watch that belief move — before and after deliberation, and before the next handover.',
+  bridges: [
+    'Local hire and local supply, not only a speech at the fence',
+    'Temporary work that leaves a trade, a supplier, or maintenance',
+    'One file on who was hired and who was paid',
+  ],
+  tensions: [
+    'Is a sod-turning headcount growth, or a count that does not last?',
+    'Must local labour sit in the tender, or only in the speech?',
+  ],
+};
+
+const vhembeEssay: DataEssay = {
+  headline: 'The poster is not the net.',
+  lede:
+    'In Vhembe, people are not waiting for a malaria lecture in order to act. They are sleeping outside in the heat, treating fever at the spaza, and crossing Beitbridge for work — while the programme month arrives to empty houses.',
+  coexistence:
+    'Knowledge of the radio message and a torn net live in the same room. Refusal to stay indoors is not denial of risk. It is a different theory of heat, work, and who the spray team will actually find.',
+  methods:
+    'Synthetic pilot record for demonstration. Constructed votes on six community statements. Prepared to show how The Precinct would carry household practice into a district brief. Not an official malaria inventory.',
+  bridgeEssay:
+    'Agreement is strong that awareness is not coverage: a whole net, a spray round that meets the household, a clinic that is not a second trip after the shop. Prevention is described as a practice (who sleeps where, who is home for spray) more often than as a poster. Policy that cannot hear Tshivenda, or the calendar of seasonal work, is a policy that arrives after the fever.',
+  tensionEssay:
+    'The hard split is the border. Cross-border movement reads to one group as how the district lives, and to another as a compliance gap. A second tension is first treatment: the spaza is closer than the clinic, and that fact is either a failure of the facility or a working habit. Deliberation here is not a quiz on mosquitoes. It is a structured argument about nets, spray timing, and whose season counts.',
+  closing:
+    'Vhembe · Malaria Precinct treats household practice as the first instrument, not the appendix. The civic bridge is to the district programme — if the essay can carry informal treatment and border livelihoods without translating them into non-compliance.',
+  bridges: [
+    'A whole net, not a recalled message',
+    'Spray rounds that wait for people to be home',
+    'Information and care in the language and calendar of the district',
+  ],
+  tensions: [
+    'Border movement as livelihood versus as a programme leak',
+    'Spaza-first fever care versus the clinic as the only legitimate door',
+  ],
+};
+
+const lagosEssay: DataEssay = {
+  headline: 'A number is not the same as being seen.',
+  lede:
+    'In this Lagos record, people judge digital ID first by the cost of the centre, the dead SIM, and whether biometrics still work on a working hand. Enrolment is local. A credential that helps in a bank is not the same tool as a gate in front of the hospital.',
+  coexistence:
+    'The same trader who wants a number that works at the stall also says her mother will never finish capture. Anxiety about being locked out sits beside a request for the ID to stay a card you carry, not a checkpoint. Subjective view is the data.',
+  methods:
+    'Synthetic pilot record for demonstration. Constructed deliberation on six statements about national identity systems in a dense, informal city. For equitable digital-governance briefings. Not a national opinion poll.',
+  bridgeEssay:
+    'A broad bridge: systems that assume a free day and a trip to Ikeja fail the places this record is about. Governance rooms that exclude people who will never complete enrolment are incomplete. Worn hands and the elderly are refused as edge cases. Where digital ID is accepted, it is accepted as a credential — next to an agent who is still there — not as a lock on every service.',
+  tensionEssay:
+    'Trust in a portal versus a known agent splits the room. One group will use a faster capture; another treats the tout and the queue as the institution. SIM-NIN cut-offs are not dissolved by the usefulness of a verified line. The contested question is not “digital ID: yes or no.” It is who remains a person without a number, and who owns the gate.',
+  closing:
+    'Lagos · Digital ID Precinct is an elicitation of lived enrolment — efficacy as lived, not as a dashboard of NINs issued. The civic bridge is to regulators and ministries who need those views before a linkage is copied from a bank pilot to every clinic door.',
+  bridges: [
+    'Enrolment that does not require a lost working day',
+    'Keep the ID a credential, not a gate',
+    'Governance must include people who will never complete capture',
+  ],
+  tensions: [
+    'Agent versus portal as the face of the state',
+    'A verified SIM does not cancel the harm of a cut line',
+  ],
+};
+
+const emalahleniInterviews: SeededInterview[] = [
+  {
+    name: 'Nandi Mahlangu',
+    place: 'eMalahleni',
+    picture: PORTRAIT.c,
+    messages: [
+      {
+        role: 'model',
+        text: 'Nandi — thank you for sitting with this. On the last public infrastructure project near you, who actually got the work?',
+        questionId: 'e0',
+      },
+      { role: 'user', text: 'EPWP / short contracts only', questionId: 'e0' },
+      {
+        role: 'model',
+        text: 'How much lasting opportunity did that project leave behind — from gone when the fence came down, through to skills and work that stayed?',
+        questionId: 'e1',
+      },
+      {
+        role: 'user',
+        text: 'Gone when the fence came down. Three months on the site. They counted us on the day. They did not count us in the year.',
+        questionId: 'e1',
+      },
+      {
+        role: 'model',
+        text: 'What makes temporary employment lead to lasting opportunity?',
+        questionId: 'e2',
+      },
+      { role: 'user', text: 'A trade or certificate', questionId: 'e2' },
+      {
+        role: 'model',
+        text: 'How should this infrastructure project create opportunities for local workers and businesses?',
+        questionId: 'e3',
+      },
+      {
+        role: 'user',
+        text: 'Hire here. Train here. Leave maintenance jobs after handover. Temporary work is not opportunity unless a skill or a next contract stays.',
+        questionId: 'e3',
+      },
+      {
+        role: 'model',
+        text: 'Should local labour and local suppliers be a condition of the tender — not only a speech at the sod-turning?',
+        questionId: 'e4',
+      },
+      {
+        role: 'user',
+        text: 'Yes. The speech at the fence is not the work. If it is a departmental priority, it belongs in the tender.',
+        questionId: 'e4',
+      },
+      {
+        role: 'model',
+        text: 'Last: who should see this record — ward councillor, municipality, provincial Public Works, national DPWI?',
+        questionId: 'e5',
+      },
+      {
+        role: 'user',
+        text: 'Ward councillor must see it. Municipality must see it. Provincial Public Works useful. National DPWI must see it — one file on who was hired and who was paid.',
+        questionId: 'e5',
+      },
+    ],
+  },
+  {
+    name: 'Sello Nkosi',
+    place: 'Mbombela',
+    picture: PORTRAIT.b,
+    messages: [
+      {
+        role: 'model',
+        text: 'Sello — on the last public infrastructure project near you, who actually got the work?',
+        questionId: 'e0',
+      },
+      { role: 'user', text: 'A contractor from elsewhere', questionId: 'e0' },
+      {
+        role: 'model',
+        text: 'How much lasting opportunity did that project leave behind?',
+        questionId: 'e1',
+      },
+      {
+        role: 'user',
+        text: 'Usually none for us. A local welder who is not on the supplier list is not a local benefit. The trucks came from elsewhere. The dust stayed here.',
+        questionId: 'e1',
+      },
+      {
+        role: 'model',
+        text: 'What makes temporary employment lead to lasting opportunity?',
+        questionId: 'e2',
+      },
+      { role: 'user', text: 'A local supplier kept on', questionId: 'e2' },
+      {
+        role: 'model',
+        text: 'How should this infrastructure project create opportunities for local workers and businesses?',
+        questionId: 'e3',
+      },
+      {
+        role: 'user',
+        text: 'The main contract can travel. The labour and the cement should not have to. Require the contractor to hire and buy here — then keep those suppliers on after handover.',
+        questionId: 'e3',
+      },
+      {
+        role: 'model',
+        text: 'Should local labour and local suppliers be a condition of the tender, not only a speech at the sod-turning?',
+        questionId: 'e4',
+      },
+      { role: 'user', text: 'Yes', questionId: 'e4' },
+      {
+        role: 'model',
+        text: 'Who should see this record?',
+        questionId: 'e5',
+      },
+      {
+        role: 'user',
+        text: 'Ward councillor must see it. Municipality must see it. Provincial Public Works must see it. National DPWI useful.',
+        questionId: 'e5',
+      },
+    ],
+  },
+];
+
+const vhembeInterviews: SeededInterview[] = [
+  {
+    name: 'Naledi Mudau',
+    place: 'Thohoyandou',
+    picture: PORTRAIT.a,
+    messages: [
+      {
+        role: 'model',
+        text: 'Naledi — what do you actually use to keep mosquitoes off at night?',
+        questionId: 'm0',
+      },
+      { role: 'user', text: 'A net with holes', questionId: 'm0' },
+      {
+        role: 'model',
+        text: 'How prepared is the household for the next malaria season?',
+        questionId: 'm1',
+      },
+      {
+        role: 'user',
+        text: 'Not prepared. We can recite the radio message. The net has holes from last season. The poster is in the clinic. The sleeping room is not.',
+        questionId: 'm1',
+      },
+      {
+        role: 'model',
+        text: 'When someone has fever, where do you go first?',
+        questionId: 'm2',
+      },
+      { role: 'user', text: 'Spaza / chemist', questionId: 'm2' },
+      {
+        role: 'model',
+        text: 'Describe one prevention habit that already works here — even if it is informal.',
+        questionId: 'm3',
+      },
+      {
+        role: 'user',
+        text: 'We close the room before dark when we can. In the heat people sleep outside. The fever does not wait for a cooler night.',
+        questionId: 'm3',
+      },
+      {
+        role: 'model',
+        text: 'Should indoor spraying wait until people are home, not only until the programme month?',
+        questionId: 'm4',
+      },
+      {
+        role: 'user',
+        text: 'Yes. An empty house sprayed is a statistic, not a round. Seasonal workers leave before the spray team.',
+        questionId: 'm4',
+      },
+      {
+        role: 'model',
+        text: 'What should the district protect first this season?',
+        questionId: 'm5',
+      },
+      { role: 'user', text: 'Nets that last', questionId: 'm5' },
+    ],
+  },
+  {
+    name: 'Khathu Netshivhulana',
+    place: 'Musina',
+    picture: PORTRAIT.d,
+    messages: [
+      {
+        role: 'model',
+        text: 'Khathu — what do you actually use against mosquitoes at night?',
+        questionId: 'm0',
+      },
+      { role: 'user', text: 'We sleep outside / no net', questionId: 'm0' },
+      {
+        role: 'model',
+        text: 'How prepared is the household for the next malaria season?',
+        questionId: 'm1',
+      },
+      {
+        role: 'user',
+        text: 'We have a working plan on the clinic wall. On the path, fever is treated at the spaza first. Musina is far when the child is already hot.',
+        questionId: 'm1',
+      },
+      {
+        role: 'model',
+        text: 'When someone has fever, where do you go first?',
+        questionId: 'm2',
+      },
+      { role: 'user', text: 'Clinic or hospital', questionId: 'm2' },
+      {
+        role: 'model',
+        text: 'One prevention habit that already works?',
+        questionId: 'm3',
+      },
+      {
+        role: 'user',
+        text: 'Families cross to Zimbabwe and back. The parasite does not queue at Beitbridge. Information has to be in Tshivenda, and the spray has to meet the people who are actually home.',
+        questionId: 'm3',
+      },
+      {
+        role: 'model',
+        text: 'Should indoor spraying wait until people are home?',
+        questionId: 'm4',
+      },
+      { role: 'user', text: 'Yes', questionId: 'm4' },
+      {
+        role: 'model',
+        text: 'What should the district protect first this season?',
+        questionId: 'm5',
+      },
+      { role: 'user', text: 'Care for seasonal workers', questionId: 'm5' },
+    ],
+  },
+];
+
+const lagosInterviews: SeededInterview[] = [
+  {
+    name: 'Funke Adeyemi',
+    place: 'Agege',
+    picture: PORTRAIT.a,
+    messages: [
+      {
+        role: 'model',
+        text: 'Funke — where have you met a national ID or NIN process recently, if at all?',
+        questionId: 'l0',
+      },
+      { role: 'user', text: 'Agent / tout', questionId: 'l0' },
+      {
+        role: 'model',
+        text: 'When it worked, how useful was it — from locked me out, through to genuinely helped?',
+        questionId: 'l1',
+      },
+      {
+        role: 'user',
+        text: 'Locked me out more than it helped. The market does not close so someone can sit in a capture centre. Transport to Ikeja costs more than the ID is supposed to save.',
+        questionId: 'l1',
+      },
+      {
+        role: 'model',
+        text: 'What broke trust fastest?',
+        questionId: 'l2',
+      },
+      { role: 'user', text: 'Distance / cost of the centre', questionId: 'l2' },
+      {
+        role: 'model',
+        text: 'In your own words: should this kind of ID be required where you live? Why?',
+        questionId: 'l3',
+      },
+      {
+        role: 'user',
+        text: 'Only if it stays a credential, not a gate. The agent in Agege has a face. The website has a queue that never moves. My mother will not finish the capture. She still needs the hospital.',
+        questionId: 'l3',
+      },
+      {
+        role: 'model',
+        text: 'Should a digital ID stay a credential you carry — not a gate in front of every service?',
+        questionId: 'l4',
+      },
+      { role: 'user', text: 'Yes', questionId: 'l4' },
+      {
+        role: 'model',
+        text: 'Whose view must be in the governance room?',
+        questionId: 'l5',
+      },
+      {
+        role: 'user',
+        text: 'Market traders must be present. Elderly people must be present. Capture-centre staff consulted. National regulators consulted. Telecoms optional.',
+        questionId: 'l5',
+      },
+    ],
+  },
+  {
+    name: 'Chinedu Okonkwo',
+    place: 'Yaba',
+    picture: PORTRAIT.c,
+    messages: [
+      {
+        role: 'model',
+        text: 'Chinedu — where have you met a national ID or NIN process recently?',
+        questionId: 'l0',
+      },
+      { role: 'user', text: 'Bank or SIM registration', questionId: 'l0' },
+      {
+        role: 'model',
+        text: 'When it worked, how useful was it?',
+        questionId: 'l1',
+      },
+      {
+        role: 'user',
+        text: 'Genuinely helped at the bank. Then the SIM-NIN linkage locked the phone in the week we needed it for work. Faster is not the same as welcome.',
+        questionId: 'l1',
+      },
+      {
+        role: 'model',
+        text: 'What broke trust fastest?',
+        questionId: 'l2',
+      },
+      { role: 'user', text: 'SIM cut off', questionId: 'l2' },
+      {
+        role: 'model',
+        text: 'Should this kind of ID be required where you live? Why?',
+        questionId: 'l3',
+      },
+      {
+        role: 'user',
+        text: 'A number that unlocks a clinic is different from a number that locks the clinic. Biometrics fail on worn hands. The scanner wants a print the work has already taken.',
+        questionId: 'l3',
+      },
+      {
+        role: 'model',
+        text: 'Should the ID stay a credential rather than a gate in front of every service?',
+        questionId: 'l4',
+      },
+      { role: 'user', text: 'Yes', questionId: 'l4' },
+      {
+        role: 'model',
+        text: 'Whose view must be in the governance room?',
+        questionId: 'l5',
+      },
+      {
+        role: 'user',
+        text: 'Market traders consulted. Elderly people must be present. Capture-centre staff must be present. National regulators must be present. Telecoms / banks consulted.',
+        questionId: 'l5',
+      },
+    ],
+  },
+];
+
 const natalData = corpus('chapter-natal', natalLines, natalBlocs);
 const capeData = corpus('chapter-cape', capeLines, capeBlocs);
 const kenyaData = corpus('chapter-kenya', kenyaLines, kenyaBlocs);
+const emalahleniData = corpus('chapter-emalahleni', emalahleniLines, emalahleniBlocs);
+const vhembeData = corpus('chapter-vhembe', vhembeLines, vhembeBlocs);
+const lagosData = corpus('chapter-lagos', lagosLines, lagosBlocs);
 
 export const CHAPTERS: Chapter[] = [
   {
     id: 'natal',
     audience: 'government',
     fileNo: 'KZN-PW-2026-01',
-    title: 'Natal Precinct Records',
+    ...makePrecinctLabel('Natal', 'Public Works'),
     shortTitle: 'Public Works',
-    theme: 'Infrastructure feedback & service delivery sentiment',
+    theme: 'What fails, who is told, whether anyone arrives.',
     region: 'KwaZulu-Natal',
+    country: 'South Africa',
     partner: 'Department of Public Works and Infrastructure',
     partnerUrl: 'http://publicworks.gov.za/',
     preparedFor: 'DPWI · publicworks.gov.za',
@@ -782,13 +1434,42 @@ export const CHAPTERS: Chapter[] = [
     essay: natalEssay,
   },
   {
+    id: 'emalahleni',
+    audience: 'government',
+    fileNo: 'MP-LB-2026-04',
+    ...makePrecinctLabel('eMalahleni', 'Local Benefit'),
+    shortTitle: 'Local Benefit',
+    theme: 'How infrastructure creates work that lasts for local people and businesses.',
+    region: 'Mpumalanga',
+    country: 'South Africa',
+    partner: 'Department of Public Works and Infrastructure',
+    partnerUrl: 'http://publicworks.gov.za/',
+    preparedFor: 'DPWI · publicworks.gov.za',
+    summary:
+      'A Mpumalanga pilot on local economic benefit from infrastructure — who is hired, who is paid, and what makes temporary employment lead to lasting opportunity.',
+    prompt:
+      'Create a Mpumalanga interview for the Department of Public Works and Infrastructure: how should this infrastructure project create opportunities for local workers and businesses? Job creation and infrastructure-led growth are explicit departmental priorities. Ask what makes temporary employment lead to lasting opportunity — a trade, a local supplier kept on, maintenance after handover — and whether local labour belongs in the tender, not only in the speech. Deliberative, for a civic bridge from the ward to Pretoria. Not a jobs-announced score. This is a Precinct pilot, not an official government publication.',
+    context: {
+      domain: 'Political Polling',
+      audience: 'Local workers and businesses near public infrastructure sites',
+      region: 'Mpumalanga',
+      tone: 'Empathetic & Warm',
+    },
+    functions: ['Survey', 'Elicit', 'Deliberate', 'Bridge'],
+    survey: emalahleniSurvey,
+    interviews: emalahleniInterviews,
+    ...emalahleniData,
+    essay: emalahleniEssay,
+  },
+  {
     id: 'cape',
     audience: 'development',
     fileNo: 'EC-CR-2026-02',
-    title: 'Cape Precinct Records',
-    shortTitle: 'Climate Resilience',
+    ...makePrecinctLabel('Cape', 'Climate'),
+    shortTitle: 'Climate',
     theme: 'Community observation & adaptation',
     region: 'Eastern Cape',
+    country: 'South Africa',
     partner: 'Regional climate & municipal partners',
     preparedFor: 'Regional policy · Eastern Cape',
     summary:
@@ -808,13 +1489,41 @@ export const CHAPTERS: Chapter[] = [
     essay: capeEssay,
   },
   {
+    id: 'vhembe',
+    audience: 'development',
+    fileNo: 'LP-MH-2026-05',
+    ...makePrecinctLabel('Vhembe', 'Malaria'),
+    shortTitle: 'Malaria',
+    theme: 'Awareness is not a net that is still whole.',
+    region: 'Vhembe District, Limpopo',
+    country: 'South Africa',
+    partner: 'District malaria programme · Limpopo',
+    preparedFor: 'District health · Vhembe',
+    summary:
+      'Household practice against malaria in Vhembe — nets, first treatment, spray rounds, and cross-border work — to inform the district programme.',
+    prompt:
+      'Create a community malaria interview for Vhembe District, Limpopo: what people actually use at night, where fever is treated first, whether indoor spraying should wait for people to be home, and how seasonal and cross-border work meets the programme calendar. Deliberative, not a quiz on mosquitoes. Precinct for Development — a synthetic pilot, not an official malaria inventory.',
+    context: {
+      domain: 'Medical / Clinical',
+      audience: 'Vhembe households',
+      region: 'Vhembe District, Limpopo',
+      tone: 'Empathetic & Warm',
+    },
+    functions: ['Elicit', 'Survey', 'Deliberate', 'Bridge'],
+    survey: vhembeSurvey,
+    interviews: vhembeInterviews,
+    ...vhembeData,
+    essay: vhembeEssay,
+  },
+  {
     id: 'kenya',
     audience: 'technology',
     fileNo: 'KE-AI-2026-03',
-    title: 'Kenya Records',
-    shortTitle: 'AI and Views',
-    theme: 'Subjective views on AI — efficacy and impact',
+    ...makePrecinctLabel('Kenya', 'Subjective Views'),
+    shortTitle: 'Subjective Views',
+    theme: 'Lived views on AI — efficacy as lived, not a vendor slide.',
     region: 'Kenya',
+    country: 'Kenya',
     partner: 'Equitable tech governance',
     preparedFor: 'Governance · low-resource, culturally rich settings',
     summary:
@@ -833,13 +1542,39 @@ export const CHAPTERS: Chapter[] = [
     ...kenyaData,
     essay: kenyaEssay,
   },
+  {
+    id: 'lagos',
+    audience: 'technology',
+    fileNo: 'NG-ID-2026-06',
+    ...makePrecinctLabel('Lagos', 'Digital ID'),
+    shortTitle: 'Digital ID',
+    theme: 'Enrolment, exclusion, and who is still a person without a number.',
+    region: 'Lagos',
+    country: 'Nigeria',
+    partner: 'Digital identity governance',
+    preparedFor: 'Governance · enrolment and exclusion',
+    summary:
+      'How people in Lagos meet national identity systems — capture centres, SIM-NIN linkage, biometrics — to inform equitable digital governance.',
+    prompt:
+      'Create an interview on digital ID in Lagos: where people met NIN or SIM-NIN processes, what broke trust (distance to the centre, cut lines, failed biometrics), whether the ID should stay a credential rather than a gate, and who must sit in the governance room — including people who will never complete enrolment. Values and efficacy as lived — not a dashboard of numbers issued. Precinct for Technology — a synthetic pilot, not a national opinion poll.',
+    context: {
+      domain: 'General Inquiry',
+      audience: 'Residents and informal workers in Lagos',
+      region: 'Lagos, Nigeria',
+      tone: 'Empathetic & Warm',
+    },
+    functions: ['Elicit', 'Survey', 'Deliberate', 'Bridge'],
+    survey: lagosSurvey,
+    interviews: lagosInterviews,
+    ...lagosData,
+    essay: lagosEssay,
+  },
 ];
 
-export const CHAPTER_BY_ID: Record<ChapterId, Chapter> = {
-  natal: CHAPTERS[0],
-  cape: CHAPTERS[1],
-  kenya: CHAPTERS[2],
-};
+export const CHAPTER_BY_ID = Object.fromEntries(CHAPTERS.map((c) => [c.id, c])) as Record<
+  ChapterId,
+  Chapter
+>;
 
 export const GOVERNMENT_CHAPTERS = CHAPTERS.filter((c) => c.audience === 'government');
 export const DEVELOPMENT_CHAPTERS = CHAPTERS.filter((c) => c.audience === 'development');
@@ -848,7 +1583,7 @@ export const TECHNOLOGY_CHAPTERS = CHAPTERS.filter((c) => c.audience === 'techno
 export const chaptersForKind = (kind: DemoKind) => CHAPTERS.filter((c) => c.audience === kind);
 
 export const isChapterId = (value: string | null): value is ChapterId =>
-  value === 'natal' || value === 'cape' || value === 'kenya';
+  !!value && Object.prototype.hasOwnProperty.call(CHAPTER_BY_ID, value);
 
 export const isDemoKind = (value: string | null): value is DemoKind =>
   value === 'government' || value === 'development' || value === 'technology';

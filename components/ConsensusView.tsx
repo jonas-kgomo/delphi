@@ -9,6 +9,9 @@ import {
 import { generateDataEssay } from '../services/geminiService';
 import { Button } from './ui/Button';
 import { VoiceGlobe, type VoiceBubble } from './VoiceGlobe';
+import { SouthAfricaMap } from './SouthAfricaMap';
+import type { MapRegion } from '../lib/governmentMap';
+import type { ChapterId } from '../lib/chapters';
 
 interface ConsensusViewProps {
   surveyTitle: string;
@@ -22,6 +25,12 @@ interface ConsensusViewProps {
   initialEssay?: DataEssay | null;
   /** Skip generate / refresh; the page is already filled */
   locked?: boolean;
+  /** Government record — country cutout instead of the globe */
+  mapRegion?: MapRegion;
+  onOpenMapStage?: (
+    id: Extract<ChapterId, 'natal' | 'emalahleni'>,
+    leaf?: 'brief' | 'instrument' | 'deliberate' | 'record'
+  ) => void;
 }
 
 const SECTIONS = [
@@ -43,6 +52,8 @@ export const ConsensusView: React.FC<ConsensusViewProps> = ({
   model = 'herald',
   initialEssay = null,
   locked = false,
+  mapRegion,
+  onOpenMapStage,
 }) => {
   const analysis = useMemo(() => analyzePolis(utterances, votes), [utterances, votes]);
   const consensus = analysis.utterances.filter((u) => u.isConsensus);
@@ -148,7 +159,7 @@ export const ConsensusView: React.FC<ConsensusViewProps> = ({
   }
 
   return (
-    <article className="max-w-3xl mx-auto py-6 pb-24">
+    <article className={`mx-auto py-6 pb-24 ${mapRegion ? 'max-w-5xl' : 'max-w-3xl'}`}>
       {/* Hero */}
       <header className="space-y-6 mb-12">
         <p className="text-[11px] uppercase tracking-[0.28em] text-ink-400">The Precinct data essay</p>
@@ -162,10 +173,18 @@ export const ConsensusView: React.FC<ConsensusViewProps> = ({
           {reasons.length > 0 ? ` · ${reasons.length} reflections` : ''}
         </p>
 
-        {reportVoices.length > 0 && (
-          <div className="py-4 flex justify-center sm:justify-start">
-            <VoiceGlobe variant="light" size="report" voices={reportVoices} />
-          </div>
+        {mapRegion ? (
+          <SouthAfricaMap
+            region={mapRegion}
+            className="mt-2"
+            onOpenChapter={onOpenMapStage}
+          />
+        ) : (
+          reportVoices.length > 0 && (
+            <div className="py-4 flex justify-center sm:justify-start">
+              <VoiceGlobe variant="light" size="report" voices={reportVoices} />
+            </div>
+          )
         )}
 
         {/* Dot field — each dot ≈ a vote */}

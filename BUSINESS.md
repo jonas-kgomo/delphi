@@ -2,9 +2,9 @@
 
 ## Core Value Proposition
 
-AI-powered interviews that feel like conversations, not forms. The Precinct replaces SurveyMonkey/Typeform with an interviewer that adapts in real time — then opens deliberation so communities can find common ground.
+AI-powered interviews that feel like conversations, not forms. Views, preferences, and ideals usually sit below a first answer. The Precinct elicits them, then surfaces where they hold and where they split.
 
-**precinct.city** is a living archive of those conversations. The same place also does four civic jobs:
+The same precinct works for **civic** groups, **government**, and **enterprise**. Four jobs in one place:
 
 1. **Deliberative polling** — Informed, structured public dialogue to gauge how opinion changes before and after deliberation.
 2. **Comprehensive survey** — Broad community perspectives at scale, with accessible feedback.
@@ -13,9 +13,10 @@ AI-powered interviews that feel like conversations, not forms. The Precinct repl
 
 ### Precinct for Government
 
-| Record | Mandate | Partner |
+| Label | Mandate | Partner |
 |--------|---------|---------|
-| **Natal Precinct Records** | Infrastructure feedback & service delivery sentiment (KZN) | DPWI — [publicworks.gov.za](http://publicworks.gov.za/) |
+| **Natal · Public Works** | Infrastructure feedback & service delivery sentiment (KZN) | DPWI — [publicworks.gov.za](http://publicworks.gov.za/) |
+| **eMalahleni · Local Benefit** | How infrastructure creates lasting work for local workers and businesses (Mpumalanga) | DPWI — [publicworks.gov.za](http://publicworks.gov.za/) |
 
 Demo: `/government`
 
@@ -23,9 +24,10 @@ Demo: `/government`
 
 Climate, health, livelihoods, and community programmes. Civil society and NGOs sit here.
 
-| Record | Mandate |
+| Label | Mandate |
 |--------|---------|
-| **Cape Precinct Records** | Community climate observation & adaptation (Eastern Cape) |
+| **Cape · Climate** | Community climate observation & adaptation (Eastern Cape) |
+| **Vhembe · Malaria** | Household practice, nets, and spray rounds (Limpopo) |
 
 Demo: `?demo=development` (`?demo=climate` still works)
 
@@ -33,9 +35,10 @@ Demo: `?demo=development` (`?demo=climate` still works)
 
 How people meet tools — subjective views on AI, digital services, and tech governance. Enterprise product research stays in Create.
 
-| Record | Mandate |
+| Label | Mandate |
 |--------|---------|
-| **Kenya Records** | Views on AI in low-resource, culturally rich settings |
+| **Kenya · Subjective Views** | Views on AI in low-resource, culturally rich settings |
+| **Lagos · Digital ID** | Enrolment, exclusion, and the number as a gate |
 
 Demo: `?demo=technology` (`?demo=ai` still works)
 

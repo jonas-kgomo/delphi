@@ -1,11 +1,11 @@
 import { BRAND_DOMAIN, BRAND_NAME } from './brand';
-import { CHAPTER_BY_ID, SECTORS, parseDemoParam, parsePathKind, type ChapterId, type DemoKind } from './chapters';
+import { CHAPTER_BY_ID, SECTORS, isChapterId, parseDemoParam, parsePathKind, type ChapterId, type DemoKind } from './chapters';
 import type { ViewMode } from '../types';
 
 export const SITE_ORIGIN = `https://${BRAND_DOMAIN}`;
 
 export const DEFAULT_DESCRIPTION =
-  'A living archive of conversations. The Precinct turns research goals into interviews that listen — then opens deliberation so communities can find common ground.';
+  'Structured conversations for better decisions. The Precinct helps governments, communities, and organisations run thoughtful consultations and deliberations.';
 
 export type SeoPage = {
   title: string;
@@ -50,12 +50,12 @@ export function seoFromSearch(search: string): SeoPage {
   }
 
   const chapter = params.get('chapter');
-  const kind = parseDemoParam(params.get('demo')) ?? (isChapterKey(chapter) ? CHAPTER_BY_ID[chapter].audience : null);
+  const kind = parseDemoParam(params.get('demo')) ?? (isChapterId(chapter) ? CHAPTER_BY_ID[chapter].audience : null);
 
-  if (isChapterKey(chapter)) {
+  if (isChapterId(chapter)) {
     const ch = CHAPTER_BY_ID[chapter];
     return {
-      title: `${ch.title} · ${BRAND_NAME}`,
+      title: `${ch.city} · ${ch.title}`,
       description: ch.summary,
       image: OG[ch.audience],
       path: `/${ch.audience}/?chapter=${ch.id}`,
@@ -89,10 +89,6 @@ export function seoFromLocation(pathname: string, search: string): SeoPage {
   };
 }
 
-function isChapterKey(value: string | null): value is ChapterId {
-  return value === 'natal' || value === 'cape' || value === 'kenya';
-}
-
 export function seoForView(opts: {
   view: ViewMode;
   demoKind: DemoKind;
@@ -119,7 +115,7 @@ export function seoForView(opts: {
   if (opts.view === 'CONSENSUS') {
     return {
       ...fromUrl,
-      title: opts.surveyTitle ? `${opts.surveyTitle} · Record` : `Record · ${BRAND_NAME}`,
+      title: opts.surveyTitle ? `${opts.surveyTitle} · Essay` : `Essay · ${BRAND_NAME}`,
       description: 'A data essay of bridging consensus and contested ground.',
       image: OG.deliberate,
     };

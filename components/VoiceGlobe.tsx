@@ -135,7 +135,7 @@ const DEFAULT_VOICES: VoiceBubble[] = [
   {
     id: 'abidjan',
     picture: PORTRAITS.b,
-    quote: 'A living archive should sound like the street, not the boardroom.',
+    quote: 'What a form leaves unsaid should sound like the street, not the boardroom.',
     name: 'Aïcha K.',
     place: 'Abidjan',
     lng: -4.03,

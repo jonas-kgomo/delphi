@@ -99,7 +99,7 @@ def paint_home(square: bool = False) -> Image.Image:
         fill=(255, 255, 255, 185),
     )
 
-    headline = "A living archive of conversations"
+    headline = "Elicit what people actually hold"
     hf = serif(62 * s if not square else 72 * s, 600, 14)
     max_w = w * s - pad * 2
     lines = wrap(d, headline, hf, max_w)
@@ -108,7 +108,7 @@ def paint_home(square: bool = False) -> Image.Image:
         d.text((pad, y), line, font=hf, fill=WHITE)
         y += int(hf.size * 1.12)
 
-    sub = "Interviews that listen — then deliberation, so communities can find common ground."
+    sub = "Views sit below a first answer — for civic groups, government, and enterprise."
     sf = serif(26 * s, 400, 12)
     y += 18 * s
     for line in wrap(d, sub, sf, max_w):

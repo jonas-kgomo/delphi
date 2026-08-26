@@ -5,8 +5,17 @@ import { Survey, AIModelType } from '../types';
 import { db } from '../services/db';
 import { Builder } from './Builder';
 import { PrecinctAvatar, UserAvatar } from './Avatars';
-import { BRAND_DOMAIN, BRAND_NAME, PRECINCT_BLURB, PRECINCT_FUNCTIONS, brandSession } from '../lib/brand';
-import { CHAPTERS, SECTORS, type ChapterId, type DemoKind } from '../lib/chapters';
+import {
+  BRAND_DOMAIN,
+  BRAND_NAME,
+  PRECINCT_BLURB,
+  PRECINCT_FUNCTIONS,
+  PRECINCT_HERO,
+  PRECINCT_ROOMS,
+  brandSession,
+} from '../lib/brand';
+import { HearingBento } from './HearingBento';
+import { SECTORS, chaptersForKind, type ChapterId, type DemoKind } from '../lib/chapters';
 import {
   captureGoogleCredential,
   loadGoogleProfile,
@@ -15,6 +24,7 @@ import {
 } from '../lib/authProfile';
 import { setUserMode, type UserMode } from '../lib/userMode';
 import { VoiceGlobe } from './VoiceGlobe';
+import { CaseStudyCard } from './CaseStudyCard';
 
 export type LandingSurveyRow = {
   id: string;
@@ -236,7 +246,13 @@ export const Landing: React.FC<LandingProps> = ({
                 href="#government"
                 className="text-sm text-white/80 hover:text-white hidden lg:inline"
               >
-                For government
+                Governments
+              </a>
+              <a
+                href="#create"
+                className="text-sm text-white/80 hover:text-white hidden xl:inline"
+              >
+                Organisations
               </a>
               <a
                 href="#create"
@@ -314,9 +330,8 @@ export const Landing: React.FC<LandingProps> = ({
                 {(
                   [
                     { href: '#what-the-precinct-does', label: 'What it does' },
-                    { href: '#government', label: 'For government' },
-                    { href: '#development', label: 'For development' },
-                    { href: '#technology', label: 'For technology' },
+                    { href: '#civic', label: 'Communities' },
+                    { href: '#government', label: 'Governments' },
                     { href: '#create', label: 'Create' },
                     { href: '#participate', label: 'Participate' },
                   ] as const
@@ -371,45 +386,21 @@ export const Landing: React.FC<LandingProps> = ({
           <div className="space-y-8">
             <div className="space-y-5">
               <p className="text-[11px] uppercase tracking-[0.28em] text-white/70">{BRAND_DOMAIN}</p>
-              <h1 className="font-serif text-4xl sm:text-5xl lg:text-[3.35rem] font-semibold leading-[1.1] tracking-tight">
-                A living archive of conversations
+              <h1 className="font-serif text-4xl sm:text-5xl lg:text-[3.25rem] font-semibold leading-[1.1] tracking-tight">
+                {PRECINCT_HERO.title}
               </h1>
-              <p className="text-white/90 text-lg sm:text-xl leading-relaxed max-w-md font-serif">
-                The Precinct turns research goals into interviews that listen — then opens deliberation so
-                communities can find common ground.
+              <p className="text-white/90 text-lg sm:text-xl leading-relaxed max-w-lg font-serif">
+                {PRECINCT_HERO.body}
               </p>
               <ul className="flex flex-wrap gap-x-4 gap-y-2 text-[11px] uppercase tracking-[0.2em] text-white/75">
-                {PRECINCT_FUNCTIONS.map((fn, i) => (
-                  <li key={fn.ward} className="flex items-center gap-4">
+                {PRECINCT_ROOMS.map((room, i) => (
+                  <li key={room.room} className="flex items-center gap-4">
                     {i > 0 && <span aria-hidden className="text-white/40">·</span>}
-                    <a href="#what-the-precinct-does" className="hover:text-white">
-                      {fn.ward}
+                    <a href={room.href} className="hover:text-white">
+                      {room.room}
                     </a>
                   </li>
                 ))}
-              </ul>
-              <ul className="flex flex-wrap gap-x-4 gap-y-2 text-[11px] uppercase tracking-[0.2em] text-white/75">
-                <li>
-                  <a href="#government" className="hover:text-white">
-                    Government
-                  </a>
-                </li>
-                <li className="flex items-center gap-4">
-                  <span aria-hidden className="text-white/40">
-                    ·
-                  </span>
-                  <a href="#development" className="hover:text-white">
-                    Development
-                  </a>
-                </li>
-                <li className="flex items-center gap-4">
-                  <span aria-hidden className="text-white/40">
-                    ·
-                  </span>
-                  <a href="#technology" className="hover:text-white">
-                    Technology
-                  </a>
-                </li>
               </ul>
             </div>
             <div className="flex flex-col sm:flex-row flex-wrap gap-3">
@@ -452,6 +443,35 @@ export const Landing: React.FC<LandingProps> = ({
         </div>
       </section>
 
+      {/* ——— How hearing works — just below the hero ——— */}
+      <section className="bg-cream text-ink-800">
+        <div className="max-w-5xl mx-auto px-4 sm:px-12 py-10 sm:py-14">
+          <HearingBento />
+        </div>
+      </section>
+
+      {/* ——— What you get ——— */}
+      <section id="features" className="bg-white px-4 sm:px-12 py-14 sm:py-20 border-b border-ink-800/5 scroll-mt-24">
+        <div className="max-w-5xl mx-auto grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+          <div className="space-y-4">
+            <p className="text-[11px] uppercase tracking-[0.28em] text-ink-400">What you get</p>
+            <h2 className="font-serif text-3xl sm:text-4xl font-semibold text-ink-800 tracking-tight">
+              From interview to data essay
+            </h2>
+            <p className="text-ink-800/65 text-base leading-relaxed max-w-md">
+              After people talk and vote, The Precinct surfaces bridges and tensions — numbered themes,
+              reflections, and Agree / Pass / Disagree — as a readable report, not a dashboard dump.
+            </p>
+            <ul className="space-y-2 text-sm text-ink-800/80 pt-2">
+              <li>Conversational interviews with follow-ups</li>
+              <li>Community deliberation on statements</li>
+              <li>Consensus maps & quote walls</li>
+            </ul>
+          </div>
+          <EssaySnippetStack />
+        </div>
+      </section>
+
       {/* ——— What a precinct is + four tools ——— */}
       <section id="what-the-precinct-does" className="bg-white text-ink-800 scroll-mt-24">
         <div className="max-w-5xl mx-auto px-4 sm:px-12 py-14 sm:py-20">
@@ -462,8 +482,8 @@ export const Landing: React.FC<LandingProps> = ({
             </h2>
             <p className="text-ink-800/75 text-base leading-relaxed">{PRECINCT_BLURB}</p>
             <p className="text-ink-800/70 text-base leading-relaxed">
-              Conversation is the method. These are the jobs it does — listen at scale, go deeper,
-              deliberate, and carry the record to the people who decide.
+              Conversation is the method. These are the jobs it does — elicit, surface at scale,
+              deliberate, and carry what people hold to the people who decide.
             </p>
           </div>
 
@@ -485,98 +505,95 @@ export const Landing: React.FC<LandingProps> = ({
       </section>
 
       {/* ——— For government ——— */}
-      <section id="government" className="bg-ink-800 text-white scroll-mt-24">
-        <div className="max-w-5xl mx-auto px-4 sm:px-12 py-14 sm:py-20 grid lg:grid-cols-[1.15fr_0.85fr] gap-8 lg:gap-16 items-start">
-          <div className="space-y-5">
-            <p className="text-[11px] uppercase tracking-[0.28em] text-white/50">For government</p>
-            <h2 className="font-serif text-3xl sm:text-4xl font-semibold tracking-tight leading-[1.15]">
-              One file the ward and Pretoria can both read.
-            </h2>
-            <p className="text-white/80 text-base leading-relaxed max-w-xl">
-              Departments already log tickets and satisfaction scores. They rarely share one record
-              with the councillor. The Precinct interviews residents on clinics, roads, and public
-              buildings — then opens deliberation so you see where people agree, and where they
-              split, before the next handover.
-            </p>
-            <ul className="space-y-3 text-sm text-white/80 leading-relaxed max-w-xl pt-1">
-              <li>
-                <span className="text-white font-medium">A civic bridge, not a dashboard.</span>{' '}
-                Carry what people said to the officials who decide — in language they can quote.
-              </li>
-              <li>
-                <span className="text-white font-medium">Opinion that can move.</span> Deliberation
-                shows what holds after people hear each other, not only a first-pass poll.
-              </li>
-              <li>
-                <span className="text-white font-medium">Faults as a response problem.</span>{' '}
-                Residents will report again if a crew arrives once. Track that belief, not a
-                star rating.
-              </li>
-            </ul>
-            <p className="text-sm text-white/55 pt-1">
-              Prepared for the Department of Public Works and Infrastructure —{' '}
-              <a
-                href="http://publicworks.gov.za/"
-                target="_blank"
-                rel="noreferrer"
-                className="underline underline-offset-2 text-white/80 hover:text-white"
-              >
-                publicworks.gov.za
-                <ArrowUpRight size={12} className="inline ml-0.5 align-text-bottom" />
-              </a>
-              . A synthetic pilot — not an official publication.
-            </p>
-          </div>
+      <section id="government" className="bg-cream text-ink-800 scroll-mt-24">
+        <div className="max-w-5xl mx-auto px-4 sm:px-12 py-14 sm:py-20">
+          <div className="grid lg:grid-cols-12 gap-3">
+            <article className="lg:col-span-7 bg-ink-950 text-white rounded-2xl px-6 sm:px-8 py-8 sm:py-10 flex flex-col justify-between min-h-[16rem]">
+              <div className="space-y-4">
+                <p className="text-[11px] uppercase tracking-[0.22em] text-white/45">
+                  For government · South Africa
+                </p>
+                <h2 className="font-serif text-2xl sm:text-3xl lg:text-[2.15rem] font-semibold leading-[1.15] tracking-tight">
+                  Where residents and the department already agree.
+                </h2>
+                <p className="text-white/75 text-sm sm:text-base leading-relaxed max-w-md">
+                  Departments already log tickets and satisfaction scores. They rarely surface what
+                  people actually hold. The Precinct interviews residents on clinics, roads, and public
+                  buildings — then opens deliberation so you see where views meet, and where they
+                  split, before the next handover.
+                </p>
+                <ul className="space-y-2.5 text-sm text-white/70 leading-relaxed max-w-md pt-1">
+                  <li>
+                    <span className="text-white font-medium">A civic bridge.</span>{' '}
+                    Carry what people said to the officials who decide — in language they can quote.
+                  </li>
+                  <li>
+                    <span className="text-white font-medium">Opinion that can move.</span> Deliberation
+                    shows what holds after people hear each other, not only a first-pass poll.
+                  </li>
+                  <li>
+                    <span className="text-white font-medium">Public serive improvements through engagement.</span>{' '}
+                    Residents will report again if a crew arrives once. Track that belief, not a
+                    star rating.
+                  </li>
+                </ul>
+              </div>
+              <p className="text-sm text-white/45 pt-8">
+                Prepared for the Department of Public Works and Infrastructure —{' '}
+                <a
+                  href="http://publicworks.gov.za/"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="underline underline-offset-2 text-white/70 hover:text-white"
+                >
+                  publicworks.gov.za
+                  <ArrowUpRight size={12} className="inline ml-0.5 align-text-bottom" />
+                </a>
+                . A synthetic pilot — not an official publication.
+              </p>
+            </article>
 
-          <div className="space-y-4">
-            <button
-              type="button"
-              onClick={() => onOpenSector('government', 'natal')}
-              className="w-full text-left bg-white text-ink-800 rounded-2xl px-5 py-6 hover:bg-cream active:scale-[0.99] transition-[transform,background-color] duration-150"
-            >
-              <span className="flex items-center justify-between gap-3">
-                <span className="text-[11px] uppercase tracking-[0.18em] text-ink-400">
-                  Government · KZN-PW-2026-01
+            <div className="lg:col-span-5 grid gap-3">
+              {chaptersForKind('government').map((ch) => (
+                <CaseStudyCard
+                  key={ch.id}
+                  chapter={ch}
+                  onOpen={() => onOpenSector('government', ch.id)}
+                />
+              ))}
+              <button
+                type="button"
+                onClick={() => onOpenSector('government')}
+                className="text-left bg-white border border-ink-200 rounded-2xl px-5 py-5 hover:border-ink-800 hover:bg-ink-50 active:scale-[0.99] transition-[transform,background-color,border-color] duration-150"
+              >
+                <span className="block text-[11px] uppercase tracking-[0.18em] text-ink-400 mb-1.5">
+                  South Africa
                 </span>
-                <ArrowUpRight size={14} className="text-ink-400 shrink-0" />
-              </span>
-              <span className="block font-serif text-2xl font-semibold text-ink-950 mt-3 leading-snug">
-                Natal Precinct Records
-              </span>
-              <span className="block mt-2 text-sm text-ink-800/70 leading-relaxed">
-                Public works and service delivery in KwaZulu-Natal — what fails, who is told,
-                whether anyone arrives.
-              </span>
-              <span className="mt-4 inline-flex text-sm font-medium text-ink-950">
-                Open the file
-              </span>
-            </button>
-            <button
-              type="button"
-              onClick={() => onOpenSector('government')}
-              className="w-full text-left px-5 py-3 text-sm text-white/70 hover:text-white border border-white/20 rounded-2xl active:scale-[0.99] transition-[transform,color] duration-150"
-            >
-              Country map — voices in every province
-              <ArrowUpRight size={14} className="inline ml-1.5 align-text-bottom" />
-            </button>
+                <span className="block font-serif text-lg sm:text-xl font-semibold text-ink-950 leading-snug">
+                  Country map — voices in every province
+                </span>
+              </button>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* ——— Development & technology ——— */}
-      <section className="bg-cream px-4 sm:px-12 py-14 sm:py-20 border-b border-ink-800/5">
+      {/* ——— Civic: development & technology ——— */}
+      <section id="civic" className="bg-cream px-4 sm:px-12 py-14 sm:py-20 border-b border-ink-800/5 scroll-mt-24">
         <div className="max-w-5xl mx-auto space-y-10 sm:space-y-12">
           <div className="max-w-2xl">
             <h2 className="font-serif text-3xl sm:text-4xl font-semibold text-ink-950 tracking-tight">
               Precinct for Development, and Technology.
             </h2>
+            <p className="mt-3 text-ink-800/70 text-base leading-relaxed max-w-xl">
+              Civic and programme work lives here. Enterprise starts from Create.
+            </p>
           </div>
 
           <div className="grid md:grid-cols-2 gap-8 md:gap-10">
             {(['development', 'technology'] as const).map((kind) => {
               const sector = SECTORS[kind];
-              const ch = CHAPTERS.find((c) => c.audience === kind);
-              if (!ch) return null;
+              const files = chaptersForKind(kind);
               return (
                 <article key={kind} id={kind} className="scroll-mt-24 space-y-4">
                   <p className="text-[11px] uppercase tracking-[0.18em] text-ink-400">{sector.eyebrow}</p>
@@ -584,22 +601,13 @@ export const Landing: React.FC<LandingProps> = ({
                     {sector.title}
                   </h3>
                   <p className="text-ink-800/70 text-sm sm:text-base leading-relaxed">{sector.summary}</p>
-                  <button
-                    type="button"
-                    onClick={() => onOpenSector(kind, ch.id)}
-                    className="w-full text-left bg-white border border-ink-200 rounded-2xl px-5 py-6 hover:border-ink-800 hover:bg-ink-50 active:scale-[0.99] transition-[transform,background-color,border-color] duration-150"
-                  >
-                    <span className="flex items-center justify-between gap-3">
-                      <span className="text-[11px] uppercase tracking-[0.18em] text-ink-400">
-                        {ch.shortTitle} · {ch.region}
-                      </span>
-                      <ArrowUpRight size={14} className="text-ink-400 shrink-0" />
-                    </span>
-                    <span className="block font-serif text-xl font-semibold text-ink-950 mt-3 leading-snug">
-                      {ch.title}
-                    </span>
-                    <span className="block mt-2 text-sm text-ink-800/70 leading-relaxed">{ch.theme}</span>
-                  </button>
+                  <ul className="space-y-3">
+                    {files.map((ch) => (
+                      <li key={ch.id}>
+                        <CaseStudyCard chapter={ch} onOpen={() => onOpenSector(kind, ch.id)} />
+                      </li>
+                    ))}
+                  </ul>
                 </article>
               );
             })}
@@ -607,38 +615,16 @@ export const Landing: React.FC<LandingProps> = ({
         </div>
       </section>
 
-      {/* ——— Feature scope: essay / deliberation UI ——— */}
-      <section id="features" className="bg-white px-4 sm:px-12 py-14 sm:py-20 border-b border-ink-800/5">
-        <div className="max-w-5xl mx-auto grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
-          <div className="space-y-4">
-            <p className="text-[11px] uppercase tracking-[0.28em] text-ink-400">What you get</p>
-            <h2 className="font-serif text-3xl sm:text-4xl font-semibold text-ink-800 tracking-tight">
-              From interview to data essay
-            </h2>
-            <p className="text-ink-800/65 text-base leading-relaxed max-w-md">
-              After people talk and vote, The Precinct surfaces bridges and tensions — numbered themes,
-              reflections, and Agree / Pass / Disagree — as a readable report, not a dashboard dump.
-            </p>
-            <ul className="space-y-2 text-sm text-ink-800/80 pt-2">
-              <li>Conversational interviews with follow-ups</li>
-              <li>Community deliberation on statements</li>
-              <li>Consensus maps & quote walls</li>
-            </ul>
-          </div>
-          <EssaySnippetStack />
-        </div>
-      </section>
-
       {/* ——— Create: full builder input ——— */}
       <section id="create" className="bg-white px-4 sm:px-12 py-12 sm:py-16">
-        <div className="max-w-4xl mx-auto space-y-4">
-          <div className="text-center space-y-1.5 mb-5">
+        <div className="max-w-5xl mx-auto space-y-4">
+          <div className="space-y-1.5 mb-5">
             <p className="text-[11px] uppercase tracking-[0.28em] text-ink-400">Create</p>
             <h2 className="font-serif text-2xl sm:text-3xl font-semibold text-ink-800">
               What do you want to learn?
             </h2>
-            <p className="text-ink-800/60 text-sm max-w-lg mx-auto">
-              How a service is used, whether a policy lands, what a community values — we compose the
+            <p className="text-ink-800/60 text-sm max-w-lg">
+              How a service is used, whether a policy lands, why a product is refused — we compose the
               interview.
             </p>
           </div>
@@ -664,7 +650,7 @@ export const Landing: React.FC<LandingProps> = ({
 
       {/* ——— Participate / public directory ——— */}
       <section id="participate" className="bg-forest text-white px-4 sm:px-12 py-14 sm:py-20 scroll-mt-24">
-        <div className="max-w-4xl mx-auto space-y-8">
+        <div className="max-w-5xl mx-auto space-y-8">
           <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
             <div className="space-y-3">
               <div className="w-12 h-12 rounded-2xl bg-white/15 text-white flex items-center justify-center">
@@ -800,16 +786,16 @@ export const Landing: React.FC<LandingProps> = ({
       <footer className="bg-ink-950 text-white/40 text-xs text-center py-8 px-4 pb-[max(2rem,env(safe-area-inset-bottom))]">
         {BRAND_NAME} · {BRAND_DOMAIN}
         <span className="mx-2">·</span>
+        <a href="#civic" className="hover:text-white/70">
+          Communities
+        </a>
+        <span className="text-white/20"> · </span>
         <a href="#government" className="hover:text-white/70">
-          Government
+          Governments
         </a>
         <span className="text-white/20"> · </span>
-        <a href="#development" className="hover:text-white/70">
-          Development
-        </a>
-        <span className="text-white/20"> · </span>
-        <a href="#technology" className="hover:text-white/70">
-          Technology
+        <a href="#create" className="hover:text-white/70">
+          Organisations
         </a>
       </footer>
     </div>

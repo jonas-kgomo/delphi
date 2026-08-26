@@ -869,7 +869,7 @@ export default function App() {
         {/* Main Content */}
         <main className="pt-[calc(5rem+env(safe-area-inset-top))] px-4 sm:px-6 lg:px-12 min-h-screen w-full">
           {(view === 'DASHBOARD' || view === 'BUILDER') && (
-            <>
+            <div className="max-w-5xl mx-auto">
               <Builder
                 key={`${currentSurveyDbId ?? 'new'}-${builderNonce}`}
                 model={model}
@@ -879,7 +879,7 @@ export default function App() {
                 onPreview={handlePreview}
               />
 
-              <div className="max-w-2xl mx-auto mt-10 mb-12 space-y-6">
+              <div className="mt-10 mb-12 space-y-6">
                 {/* Below composer: new slate + previous interviews */}
                 <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 pt-2">
                   <div>
@@ -1018,7 +1018,7 @@ export default function App() {
                   </div>
                 )}
               </div>
-            </>
+            </div>
           )}
 
           {view === 'INTERVIEWER' && currentSurvey && (
