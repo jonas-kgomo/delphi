@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import * as d3 from 'd3';
 import { EarthRotation, RotatingEarth, earthDiscScale } from './RotatingEarth';
 
@@ -171,7 +171,15 @@ export const VoiceGlobe: React.FC<VoiceGlobeProps> = ({
   zoom = 1,
 }) => {
   const shown = voices.slice(0, Math.max(1, maxPins));
-  const earth = size === 'hero' ? 320 : 280;
+  const [wide, setWide] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia('(min-width: 640px)');
+    const sync = () => setWide(mq.matches);
+    sync();
+    mq.addEventListener('change', sync);
+    return () => mq.removeEventListener('change', sync);
+  }, []);
+  const earth = size === 'hero' ? (wide ? 320 : 248) : wide ? 280 : 220;
   const { discR, scale } = earthDiscScale(earth, zoom);
   const pinSize = shown.length > 7 ? 'w-7 h-7 sm:w-8 sm:h-8' : 'w-8 h-8 sm:w-9 sm:h-9';
   const pinRefs = useRef<(HTMLElement | null)[]>([]);

@@ -97,10 +97,10 @@ export const SouthAfricaMap: React.FC<SouthAfricaMapProps> = ({
       </div>
 
       <div className="grid lg:grid-cols-[1fr_16.5rem]">
-        <div className="bg-cream px-4 sm:px-8 py-6 sm:py-8 flex items-center justify-center">
+        <div className="bg-cream px-3 sm:px-8 py-5 sm:py-8 flex items-center justify-center overflow-x-auto">
           <div
             className="grid gap-[3px] sm:gap-1"
-            style={{ gridTemplateColumns: 'repeat(4, minmax(3.4rem, 4.75rem))' }}
+            style={{ gridTemplateColumns: 'repeat(4, minmax(2.55rem, 4.75rem))' }}
             role="list"
             aria-label="South Africa province tilemap"
           >

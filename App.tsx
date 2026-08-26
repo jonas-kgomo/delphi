@@ -7,7 +7,7 @@ import { ConsensusView } from './components/ConsensusView';
 import { Landing } from './components/Landing';
 import { ChaptersDemo } from './components/ChaptersDemo';
 import { ParticipantHome } from './components/ParticipantHome';
-import { FileText, Share2, BarChart3, Copy, Check, ExternalLink, Scale, Sparkles, Layers, Plus } from 'lucide-react';
+import { FileText, Share2, BarChart3, Copy, Check, ExternalLink, Scale, Sparkles, Layers, Plus, Menu, X } from 'lucide-react';
 import { db, id, tx, getSessionId } from './services/db';
 import { extractUtterancesFromTranscripts } from './services/geminiService';
 import { ModelPicker } from './components/ModelPicker';
@@ -71,6 +71,7 @@ export default function App() {
   const [listPublicly, setListPublicly] = useState(false);
   /** Bump to remount Builder on “New interview” */
   const [builderNonce, setBuilderNonce] = useState(0);
+  const [studioMenuOpen, setStudioMenuOpen] = useState(false);
   const [nonce] = useState(crypto.randomUUID());
   /** Google name / avatar from ID token (Instant user only has email) */
   const [googleProfile, setGoogleProfile] = useState<AuthProfile | null>(() => loadGoogleProfile());
@@ -705,35 +706,36 @@ export default function App() {
     <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
       <div className="min-h-screen font-sans text-ink-800 bg-ink-50 selection:bg-leaf-400/30">
         {/* Navigation — logo, links, model, avatar */}
-        <nav className="fixed top-0 left-0 right-0 h-14 bg-ink-50/90 backdrop-blur-md border-b border-ink-200 z-50 flex items-center justify-between px-4 sm:px-8">
+        <nav className="fixed top-0 left-0 right-0 z-50 bg-ink-50/90 backdrop-blur-md border-b border-ink-200 pt-[env(safe-area-inset-top)]">
+          <div className="h-14 flex items-center justify-between px-3 sm:px-8 gap-2">
           <button
             type="button"
-            className="flex items-center gap-2.5"
-            onClick={() => { setView('LANDING'); setShareUrl(null); }}
+            className="flex items-center gap-2 min-w-0"
+            onClick={() => { setView('LANDING'); setShareUrl(null); setStudioMenuOpen(false); }}
           >
             <PrecinctAvatar size="sm" />
-            <span className="font-serif text-lg font-semibold tracking-tight text-ink-800">{BRAND_NAME}</span>
+            <span className="font-serif text-base sm:text-lg font-semibold tracking-tight text-ink-800 truncate">{BRAND_NAME}</span>
           </button>
 
-          <div className="flex items-center gap-1 sm:gap-4">
+          <div className="flex items-center gap-0.5 sm:gap-4 shrink-0">
             <button
               type="button"
               onClick={() => continueAs('participant')}
-              className="hidden sm:inline px-2 py-1 text-sm font-medium rounded-md text-ink-400 hover:text-ink-700 transition-colors"
+              className="hidden md:inline px-2 py-1 text-sm font-medium rounded-md text-ink-400 hover:text-ink-700 transition-colors"
             >
               Participate
             </button>
             <button
               type="button"
               onClick={() => openDemo('government', null)}
-              className="hidden sm:inline px-2 py-1 text-sm font-medium rounded-md text-ink-400 hover:text-ink-700 transition-colors"
+              className="hidden md:inline px-2 py-1 text-sm font-medium rounded-md text-ink-400 hover:text-ink-700 transition-colors"
             >
               Sectors
             </button>
             <button
               type="button"
               onClick={() => setView('DASHBOARD')}
-              className={`px-2 py-1 text-sm font-medium rounded-md transition-colors ${view === 'DASHBOARD' || view === 'BUILDER' ? 'text-ink-900' : 'text-ink-400 hover:text-ink-700'}`}
+              className={`hidden md:inline px-2 py-1 text-sm font-medium rounded-md transition-colors ${view === 'DASHBOARD' || view === 'BUILDER' ? 'text-ink-900' : 'text-ink-400 hover:text-ink-700'}`}
             >
               Builder
             </button>
@@ -741,7 +743,7 @@ export default function App() {
               type="button"
               onClick={() => { if (currentSurvey) setView('INTERVIEWER'); }}
               disabled={!currentSurvey}
-              className={`px-2 py-1 text-sm font-medium rounded-md transition-colors disabled:opacity-30 ${view === 'INTERVIEWER' ? 'text-ink-900' : 'text-ink-400 hover:text-ink-700'}`}
+              className={`hidden md:inline px-2 py-1 text-sm font-medium rounded-md transition-colors disabled:opacity-30 ${view === 'INTERVIEWER' ? 'text-ink-900' : 'text-ink-400 hover:text-ink-700'}`}
             >
               Preview
             </button>
@@ -749,7 +751,7 @@ export default function App() {
               type="button"
               onClick={() => { if (currentSurveyDbId) setView('RESULTS'); }}
               disabled={!currentSurveyDbId}
-              className={`px-2 py-1 text-sm font-medium rounded-md transition-colors disabled:opacity-30 ${view === 'RESULTS' ? 'text-ink-900' : 'text-ink-400 hover:text-ink-700'}`}
+              className={`hidden md:inline px-2 py-1 text-sm font-medium rounded-md transition-colors disabled:opacity-30 ${view === 'RESULTS' ? 'text-ink-900' : 'text-ink-400 hover:text-ink-700'}`}
             >
               Results
               {responseCount > 0 && (
@@ -767,12 +769,12 @@ export default function App() {
                 }
               }}
               disabled={!currentSurveyDbId}
-              className={`hidden sm:inline-flex px-2 py-1 text-sm font-medium rounded-md transition-colors disabled:opacity-30 ${view === 'CONSENSUS' ? 'text-ink-900' : 'text-ink-400 hover:text-ink-700'}`}
+              className={`hidden md:inline-flex px-2 py-1 text-sm font-medium rounded-md transition-colors disabled:opacity-30 ${view === 'CONSENSUS' ? 'text-ink-900' : 'text-ink-400 hover:text-ink-700'}`}
             >
               Consensus
             </button>
 
-            <div className="hidden sm:block ml-1">
+            <div className="hidden md:block ml-1">
               <ModelPicker value={model} onChange={setModel} />
             </div>
 
@@ -809,11 +811,63 @@ export default function App() {
                 onSuccess={handleGoogleSuccess}
               />
             )}
+
+            <button
+              type="button"
+              className="md:hidden flex items-center justify-center w-11 h-11 rounded-full text-ink-800 active:scale-[0.97] transition-transform duration-150"
+              aria-expanded={studioMenuOpen}
+              aria-label={studioMenuOpen ? 'Close menu' : 'Open menu'}
+              onClick={() => setStudioMenuOpen((open) => !open)}
+            >
+              {studioMenuOpen ? <X size={20} strokeWidth={1.75} /> : <Menu size={20} strokeWidth={1.75} />}
+            </button>
           </div>
+          </div>
+
+          {studioMenuOpen && (
+            <div className="md:hidden border-t border-ink-200 bg-white px-2 py-2">
+              {(
+                [
+                  { label: 'Participate', run: () => continueAs('participant') },
+                  { label: 'Sectors', run: () => openDemo('government', null) },
+                  { label: 'Builder', run: () => setView('DASHBOARD') },
+                  { label: 'Preview', run: () => { if (currentSurvey) setView('INTERVIEWER'); }, disabled: !currentSurvey },
+                  { label: 'Results', run: () => { if (currentSurveyDbId) setView('RESULTS'); }, disabled: !currentSurveyDbId },
+                  {
+                    label: 'Consensus',
+                    run: () => {
+                      if (currentSurveyDbId) {
+                        ensureVoteUrl(currentSurveyDbId);
+                        setView('CONSENSUS');
+                      }
+                    },
+                    disabled: !currentSurveyDbId,
+                  },
+                ] as { label: string; run: () => void; disabled?: boolean }[]
+              ).map((item) => (
+                <button
+                  key={item.label}
+                  type="button"
+                  disabled={item.disabled}
+                  onClick={() => {
+                    if (item.disabled) return;
+                    item.run();
+                    setStudioMenuOpen(false);
+                  }}
+                  className="flex w-full items-center min-h-12 px-4 rounded-xl text-[15px] font-medium text-ink-800 disabled:opacity-40 hover:bg-ink-50 active:scale-[0.99] transition-[transform,background-color] duration-150"
+                >
+                  {item.label}
+                </button>
+              ))}
+              <div className="px-4 py-3">
+                <ModelPicker value={model} onChange={setModel} />
+              </div>
+            </div>
+          )}
         </nav>
 
         {/* Main Content */}
-        <main className="pt-20 px-6 lg:px-12 min-h-screen w-full">
+        <main className="pt-[calc(5rem+env(safe-area-inset-top))] px-4 sm:px-6 lg:px-12 min-h-screen w-full">
           {(view === 'DASHBOARD' || view === 'BUILDER') && (
             <>
               <Builder

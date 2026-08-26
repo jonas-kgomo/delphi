@@ -173,9 +173,15 @@ export const Builder: React.FC<BuilderProps> = ({
       <div className={`w-full ${embedded ? '' : 'max-w-4xl mx-auto'}`}>
         <div className="flex flex-col items-center px-2 w-full mx-auto text-center">
         {!embedded && (
-          <h1 className="font-serif text-3xl sm:text-4xl md:text-5xl font-semibold text-ink-800 mb-6 tracking-tight">
-            What do you want the record to hold?
-          </h1>
+          <>
+            <h1 className="font-serif text-3xl sm:text-4xl md:text-5xl font-semibold text-ink-800 mb-2 tracking-tight">
+              What do you want to learn?
+            </h1>
+            <p className="text-ink-800/60 text-sm mb-6 max-w-lg">
+              How a service is used, whether a policy lands, what a community values — we compose the
+              interview.
+            </p>
+          </>
         )}
         
         <div className="w-full relative mb-6 bg-white p-2 rounded-3xl border-2 border-ink-200 shadow-sm focus-within:border-ink-900 focus-within:ring-4 focus-within:ring-ink-100 transition-all">
@@ -184,7 +190,7 @@ export const Builder: React.FC<BuilderProps> = ({
             <textarea 
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
-              placeholder="Describe the conversation you need to have…"
+              placeholder="e.g. How this ward reaches the clinic — and who they tell when it fails"
               className="w-full pb-6 text-2xl sm:text-3xl font-serif text-ink-900 placeholder-ink-300 bg-transparent outline-none resize-none min-h-[140px]"
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && !e.shiftKey) {

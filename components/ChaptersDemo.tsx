@@ -65,37 +65,41 @@ export const ChaptersDemo: React.FC<ChaptersDemoProps> = ({
 
   return (
     <div className="min-h-screen font-sans text-ink-800 bg-cream">
-      <header className="bg-ember-500 text-white">
-        <nav className="flex items-center justify-between px-6 sm:px-12 h-14 border-b border-white/15">
+      <header className="sticky top-0 z-50 bg-ember-500 text-white pt-[env(safe-area-inset-top)]">
+        <nav className="flex items-center justify-between gap-3 px-4 sm:px-12 h-12 sm:h-14 border-b border-white/15">
           <button
             type="button"
             onClick={onHome}
-            className="flex items-center gap-2.5 text-left active:scale-[0.97] transition-transform duration-150"
+            className="flex items-center gap-2 min-w-0 text-left active:scale-[0.97] transition-transform duration-150"
           >
             <PrecinctAvatar size="sm" />
-            <span className="leading-tight">
-              <span className="block font-serif text-lg font-semibold tracking-tight">{BRAND_NAME}</span>
-              <span className="block text-[10px] uppercase tracking-[0.18em] text-white/65">
+            <span className="leading-tight min-w-0">
+              <span className="block font-serif text-base sm:text-lg font-semibold tracking-tight truncate">
+                {BRAND_NAME}
+              </span>
+              <span className="hidden sm:block text-[10px] uppercase tracking-[0.18em] text-white/65">
                 {BRAND_DOMAIN}
               </span>
             </span>
           </button>
-          <div className="flex items-center gap-1 sm:gap-3">
-            {DEMO_KINDS.map((item) => (
-              <button
-                key={item}
-                type="button"
-                onClick={() => onOpenKind(item)}
-                className={`text-[11px] uppercase tracking-[0.16em] px-2 py-1 rounded-md active:scale-[0.97] transition-[transform,color] duration-150 ${
-                  kind === item ? 'text-white' : 'text-white/55 hover:text-white'
-                }`}
-              >
-                <span className="sm:hidden">{SECTORS[item].navShort}</span>
-                <span className="hidden sm:inline">{SECTORS[item].nav}</span>
-              </button>
-            ))}
-          </div>
         </nav>
+        <div className="grid grid-cols-3 border-b border-white/15" role="tablist" aria-label="Sectors">
+          {DEMO_KINDS.map((item) => (
+            <button
+              key={item}
+              type="button"
+              role="tab"
+              aria-selected={kind === item}
+              onClick={() => onOpenKind(item)}
+              className={`min-h-11 px-1 text-[11px] sm:text-xs uppercase tracking-[0.12em] sm:tracking-[0.16em] active:scale-[0.98] transition-[transform,color,background-color] duration-150 ${
+                kind === item ? 'bg-white/15 text-white' : 'text-white/60 hover:text-white'
+              }`}
+            >
+              <span className="sm:hidden">{SECTORS[item].navShort}</span>
+              <span className="hidden sm:inline">{SECTORS[item].nav}</span>
+            </button>
+          ))}
+        </div>
       </header>
 
       {chapter ? (
@@ -129,7 +133,7 @@ function SectorIndex({
   const others = DEMO_KINDS.filter((item) => item !== kind);
 
   return (
-    <main className="max-w-5xl mx-auto px-6 sm:px-12 py-12 sm:py-16">
+    <main className="max-w-5xl mx-auto px-4 sm:px-12 py-10 sm:py-16">
       <p className="text-[11px] uppercase tracking-[0.28em] text-ink-400 mb-3">{sector.eyebrow}</p>
       <h1 className="font-serif text-3xl sm:text-5xl font-semibold tracking-tight text-ink-950 leading-[1.12]">
         {sector.title}
@@ -283,7 +287,7 @@ function ChapterFile({
   };
 
   return (
-    <main className="max-w-5xl mx-auto px-6 sm:px-12 py-8 sm:py-12 pb-20">
+    <main className="max-w-5xl mx-auto px-4 sm:px-12 py-6 sm:py-12 pb-20">
       <button
         type="button"
         onClick={onBack}
@@ -329,13 +333,16 @@ function ChapterFile({
           </div>
         )}
 
-        <nav className="flex flex-wrap gap-2 px-5 sm:px-8 py-4 border-b border-ink-100 bg-cream/60" aria-label="File sections">
+        <nav
+          className="flex gap-2 overflow-x-auto px-4 sm:px-8 py-3 border-b border-ink-100 bg-cream/60 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          aria-label="File sections"
+        >
           {LEAVES.map((item, i) => (
             <button
               key={item.id}
               type="button"
               onClick={() => setLeaf(item.id)}
-              className={`px-3.5 py-1.5 text-sm font-medium rounded-full active:scale-[0.97] transition-[transform,color,background-color] duration-150 ${
+              className={`shrink-0 min-h-10 px-3.5 py-1.5 text-sm font-medium rounded-full active:scale-[0.97] transition-[transform,color,background-color] duration-150 ${
                 leaf === item.id
                   ? 'bg-ink-950 text-white'
                   : 'text-ink-600 hover:bg-white border border-ink-200'

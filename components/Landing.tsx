@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { ArrowUpRight, MessagesSquare, SquarePen, X } from 'lucide-react';
+import { ArrowUpRight, Menu, MessagesSquare, SquarePen, X } from 'lucide-react';
 import { GoogleLogin } from '@react-oauth/google';
 import { Survey, AIModelType } from '../types';
 import { db } from '../services/db';
@@ -58,6 +58,7 @@ export const Landing: React.FC<LandingProps> = ({
   onOpenSector,
 }) => {
   const [loginIntent, setLoginIntent] = useState<LoginIntent>(null);
+  const [menuOpen, setMenuOpen] = useState(false);
   const [googleProfile, setGoogleProfile] = useState<AuthProfile | null>(() => loadGoogleProfile());
 
   // After sign-in, route by intent
@@ -68,6 +69,20 @@ export const Landing: React.FC<LandingProps> = ({
     setLoginIntent(null);
     onContinue(mode);
   }, [user, loginIntent, onContinue]);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setMenuOpen(false);
+    };
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    window.addEventListener('keydown', onKey);
+    return () => {
+      document.body.style.overflow = prev;
+      window.removeEventListener('keydown', onKey);
+    };
+  }, [menuOpen]);
 
   const landingProfile = useMemo(() => {
     if (!user) return null;
@@ -196,81 +211,163 @@ export const Landing: React.FC<LandingProps> = ({
       )}
 
       {/* ——— Hero ——— */}
-      <section className="bg-ember-500 text-white">
-        <nav className="flex items-center justify-between px-6 sm:px-12 h-14 border-b border-white/15">
-          <div className="flex items-center gap-2.5">
-            <PrecinctAvatar size="sm" />
-            <div className="leading-tight">
-              <span className="font-serif text-lg font-semibold tracking-tight block">{BRAND_NAME}</span>
-              <span className="text-[10px] uppercase tracking-[0.18em] text-white/65 hidden sm:block">
-                {BRAND_DOMAIN}
-              </span>
-            </div>
-          </div>
-          <div className="flex items-center gap-3 sm:gap-4">
-            <a
-              href="#what-the-precinct-does"
-              className="text-sm text-white/80 hover:text-white hidden md:inline"
-            >
-              What it does
+      <section id="top" className="bg-ember-500 text-white">
+        <header className="sticky top-0 z-50 relative bg-ember-500 pt-[env(safe-area-inset-top)]">
+          <nav className="relative flex items-center justify-between gap-3 px-4 sm:px-12 h-14 border-b border-white/15">
+            <a href="#top" className="flex items-center gap-2 min-w-0">
+              <PrecinctAvatar size="sm" />
+              <div className="leading-tight min-w-0">
+                <span className="font-serif text-base sm:text-lg font-semibold tracking-tight block truncate">
+                  {BRAND_NAME}
+                </span>
+                <span className="text-[10px] uppercase tracking-[0.18em] text-white/65 hidden sm:block">
+                  {BRAND_DOMAIN}
+                </span>
+              </div>
             </a>
-            <a
-              href="#government"
-              className="text-sm text-white/80 hover:text-white hidden md:inline"
-            >
-              For government
-            </a>
-            <a
-              href="#create"
-              className="text-sm text-white/80 hover:text-white hidden sm:inline-flex items-center gap-1.5"
-            >
-              <SquarePen size={15} strokeWidth={1.75} />
-              Create
-            </a>
-            <a
-              href="#participate"
-              className="text-sm text-white/80 hover:text-white hidden sm:inline-flex items-center gap-1.5"
-            >
-              <MessagesSquare size={15} strokeWidth={1.75} />
-              Participate
-            </a>
-            {user && landingProfile ? (
-              <>
+            <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
+              <a
+                href="#what-the-precinct-does"
+                className="text-sm text-white/80 hover:text-white hidden lg:inline"
+              >
+                What it does
+              </a>
+              <a
+                href="#government"
+                className="text-sm text-white/80 hover:text-white hidden lg:inline"
+              >
+                For government
+              </a>
+              <a
+                href="#create"
+                className="text-sm text-white/80 hover:text-white hidden md:inline-flex items-center gap-1.5"
+              >
+                <SquarePen size={15} strokeWidth={1.75} />
+                Create
+              </a>
+              <a
+                href="#participate"
+                className="text-sm text-white/80 hover:text-white hidden md:inline-flex items-center gap-1.5"
+              >
+                <MessagesSquare size={15} strokeWidth={1.75} />
+                Participate
+              </a>
+              {user && landingProfile ? (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setUserMode('participant');
+                      onContinue('participant');
+                    }}
+                    className="text-sm text-white/80 hover:text-white hidden md:inline"
+                  >
+                    My interviews
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setUserMode('maker');
+                      onContinue('maker');
+                    }}
+                    className="text-sm font-medium bg-white text-ink-950 px-3 py-1.5 rounded-full hover:bg-cream hidden sm:inline active:scale-[0.97] transition-transform duration-150"
+                  >
+                    Studio
+                  </button>
+                  <UserAvatar name={landingProfile.name} picture={landingProfile.picture} size="md" />
+                </>
+              ) : (
                 <button
                   type="button"
-                  onClick={() => {
-                    setUserMode('participant');
-                    onContinue('participant');
-                  }}
-                  className="text-sm text-white/80 hover:text-white hidden sm:inline"
+                  onClick={() => setLoginIntent('choose')}
+                  className="text-sm font-medium bg-white text-ink-950 px-3 sm:px-4 py-1.5 rounded-full hover:bg-cream active:scale-[0.97] transition-transform duration-150"
                 >
-                  My interviews
+                  Sign in
                 </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setUserMode('maker');
-                    onContinue('maker');
-                  }}
-                  className="text-sm font-medium bg-white text-ink-950 px-3.5 py-1.5 rounded-full hover:bg-cream"
-                >
-                  Studio
-                </button>
-                <UserAvatar name={landingProfile.name} picture={landingProfile.picture} size="md" />
-              </>
-            ) : (
+              )}
               <button
                 type="button"
-                onClick={() => setLoginIntent('choose')}
-                className="text-sm font-medium bg-white text-ink-950 px-4 py-1.5 rounded-full hover:bg-cream"
+                className="lg:hidden flex items-center justify-center w-11 h-11 -mr-1 rounded-full text-white active:scale-[0.97] transition-transform duration-150"
+                aria-expanded={menuOpen}
+                aria-controls="landing-menu"
+                aria-label={menuOpen ? 'Close menu' : 'Open menu'}
+                onClick={() => setMenuOpen((open) => !open)}
               >
-                Sign in
+                {menuOpen ? <X size={20} strokeWidth={1.75} /> : <Menu size={20} strokeWidth={1.75} />}
               </button>
-            )}
-          </div>
-        </nav>
+            </div>
+          </nav>
 
-        <div className="grid lg:grid-cols-2 gap-10 lg:gap-16 px-6 sm:px-12 py-16 sm:py-24 items-center max-w-6xl mx-auto">
+          {menuOpen && (
+            <>
+              <button
+                type="button"
+                className="lg:hidden fixed inset-0 z-40 bg-ink-950/25"
+                aria-label="Dismiss menu"
+                onClick={() => setMenuOpen(false)}
+              />
+              <div
+                id="landing-menu"
+                className="lg:hidden absolute left-0 right-0 top-full z-50 bg-white text-ink-800 shadow-lg border-b border-ink-200"
+              >
+              <ul className="px-2 py-2">
+                {(
+                  [
+                    { href: '#what-the-precinct-does', label: 'What it does' },
+                    { href: '#government', label: 'For government' },
+                    { href: '#development', label: 'For development' },
+                    { href: '#technology', label: 'For technology' },
+                    { href: '#create', label: 'Create' },
+                    { href: '#participate', label: 'Participate' },
+                  ] as const
+                ).map((item) => (
+                  <li key={item.href}>
+                    <a
+                      href={item.href}
+                      onClick={() => setMenuOpen(false)}
+                      className="flex items-center min-h-12 px-4 rounded-xl text-[15px] font-medium text-ink-800 hover:bg-ink-50 active:scale-[0.99] transition-[transform,background-color] duration-150"
+                    >
+                      {item.label}
+                    </a>
+                  </li>
+                ))}
+                {user && landingProfile && (
+                  <>
+                    <li>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setMenuOpen(false);
+                          setUserMode('participant');
+                          onContinue('participant');
+                        }}
+                        className="flex w-full items-center min-h-12 px-4 rounded-xl text-[15px] font-medium text-ink-800 hover:bg-ink-50 active:scale-[0.99] transition-[transform,background-color] duration-150"
+                      >
+                        My interviews
+                      </button>
+                    </li>
+                    <li>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setMenuOpen(false);
+                          setUserMode('maker');
+                          onContinue('maker');
+                        }}
+                        className="flex w-full items-center min-h-12 px-4 rounded-xl text-[15px] font-medium text-ink-800 hover:bg-ink-50 active:scale-[0.99] transition-[transform,background-color] duration-150"
+                      >
+                        Studio
+                      </button>
+                    </li>
+                  </>
+                )}
+              </ul>
+            </div>
+            </>
+          )}
+        </header>
+
+        <div className="grid lg:grid-cols-2 gap-8 lg:gap-16 px-4 sm:px-12 py-10 sm:py-24 items-center max-w-6xl mx-auto">
           <div className="space-y-8">
             <div className="space-y-5">
               <p className="text-[11px] uppercase tracking-[0.28em] text-white/70">{BRAND_DOMAIN}</p>
@@ -301,7 +398,7 @@ export const Landing: React.FC<LandingProps> = ({
                   <span aria-hidden className="text-white/40">
                     ·
                   </span>
-                  <a href="#programmes" className="hover:text-white">
+                  <a href="#development" className="hover:text-white">
                     Development
                   </a>
                 </li>
@@ -309,13 +406,13 @@ export const Landing: React.FC<LandingProps> = ({
                   <span aria-hidden className="text-white/40">
                     ·
                   </span>
-                  <a href="#programmes" className="hover:text-white">
+                  <a href="#technology" className="hover:text-white">
                     Technology
                   </a>
                 </li>
               </ul>
             </div>
-            <div className="flex flex-wrap gap-3">
+            <div className="flex flex-col sm:flex-row flex-wrap gap-3">
               <button
                 type="button"
                 onClick={() => {
@@ -326,7 +423,7 @@ export const Landing: React.FC<LandingProps> = ({
                     document.getElementById('create')?.scrollIntoView({ behavior: 'smooth' });
                   }
                 }}
-                className="inline-flex items-center gap-2 px-6 py-3 bg-white text-ink-950 font-medium text-sm rounded-full hover:bg-cream"
+                className="inline-flex items-center justify-center gap-2 w-full sm:w-auto px-6 py-3.5 sm:py-3 bg-white text-ink-950 font-medium text-sm rounded-full hover:bg-cream active:scale-[0.97] transition-transform duration-150"
               >
                 <SquarePen size={15} strokeWidth={2} />
                 Create an interview
@@ -341,7 +438,7 @@ export const Landing: React.FC<LandingProps> = ({
                     setLoginIntent('participate');
                   }
                 }}
-                className="inline-flex items-center gap-2 px-6 py-3 border border-white/50 text-white font-medium text-sm rounded-full hover:bg-white/10"
+                className="inline-flex items-center justify-center gap-2 w-full sm:w-auto px-6 py-3.5 sm:py-3 border border-white/50 text-white font-medium text-sm rounded-full hover:bg-white/10 active:scale-[0.97] transition-transform duration-150"
               >
                 <MessagesSquare size={15} strokeWidth={2} />
                 Participate
@@ -349,15 +446,15 @@ export const Landing: React.FC<LandingProps> = ({
             </div>
           </div>
 
-          <div className="relative flex justify-center lg:justify-end items-center min-h-[360px] sm:min-h-[400px] py-6 overflow-visible">
+          <div className="relative flex justify-center lg:justify-end items-center min-h-[280px] sm:min-h-[400px] py-4 sm:py-6 overflow-visible">
             <VoiceGlobe variant="dark" size="hero" />
           </div>
         </div>
       </section>
 
       {/* ——— What a precinct is + four tools ——— */}
-      <section id="what-the-precinct-does" className="bg-white text-ink-800">
-        <div className="max-w-5xl mx-auto px-6 sm:px-12 py-16 sm:py-20">
+      <section id="what-the-precinct-does" className="bg-white text-ink-800 scroll-mt-24">
+        <div className="max-w-5xl mx-auto px-4 sm:px-12 py-14 sm:py-20">
           <div className="max-w-2xl space-y-4 mb-10 sm:mb-12">
             <p className="text-[11px] uppercase tracking-[0.28em] text-ink-400">What it is</p>
             <h2 className="font-serif text-3xl sm:text-4xl font-semibold tracking-tight text-ink-950">
@@ -388,8 +485,8 @@ export const Landing: React.FC<LandingProps> = ({
       </section>
 
       {/* ——— For government ——— */}
-      <section id="government" className="bg-ink-800 text-white">
-        <div className="max-w-5xl mx-auto px-6 sm:px-12 py-16 sm:py-20 grid lg:grid-cols-[1.15fr_0.85fr] gap-12 lg:gap-16 items-start">
+      <section id="government" className="bg-ink-800 text-white scroll-mt-24">
+        <div className="max-w-5xl mx-auto px-4 sm:px-12 py-14 sm:py-20 grid lg:grid-cols-[1.15fr_0.85fr] gap-8 lg:gap-16 items-start">
           <div className="space-y-5">
             <p className="text-[11px] uppercase tracking-[0.28em] text-white/50">For government</p>
             <h2 className="font-serif text-3xl sm:text-4xl font-semibold tracking-tight leading-[1.15]">
@@ -467,51 +564,52 @@ export const Landing: React.FC<LandingProps> = ({
       </section>
 
       {/* ——— Development & technology ——— */}
-      <section id="programmes" className="bg-cream px-6 sm:px-12 py-16 sm:py-20 border-b border-ink-800/5">
-        <div className="max-w-5xl mx-auto">
-          <div className="max-w-2xl space-y-4 mb-10 sm:mb-12">
-            <p className="text-[11px] uppercase tracking-[0.28em] text-ink-400">
-              Development · technology
-            </p>
+      <section className="bg-cream px-4 sm:px-12 py-14 sm:py-20 border-b border-ink-800/5">
+        <div className="max-w-5xl mx-auto space-y-10 sm:space-y-12">
+          <div className="max-w-2xl space-y-3">
+            <p className="text-[11px] uppercase tracking-[0.28em] text-ink-400">Also</p>
             <h2 className="font-serif text-3xl sm:text-4xl font-semibold text-ink-950 tracking-tight">
-              Same tools. Other rooms.
+              Precinct for Development, and Technology.
             </h2>
-            <p className="text-ink-800/70 text-base leading-relaxed">
-              Climate, health, and livelihoods; views on AI and digital services. Programmes and
-              civic groups use the Precinct to hear a place — without a departmental file number.
-              Compose your own, or open an example record.
-            </p>
           </div>
-          <div className="grid md:grid-cols-2 gap-4">
-            {CHAPTERS.filter((ch) => ch.audience !== 'government').map((ch) => (
-              <button
-                key={ch.id}
-                type="button"
-                onClick={() => onOpenSector(ch.audience, ch.id)}
-                className="text-left bg-white border border-ink-200 rounded-2xl px-5 py-6 hover:border-ink-800 hover:bg-ink-50 active:scale-[0.99] transition-[transform,background-color,border-color] duration-150"
-              >
-                <span className="flex items-center justify-between gap-3">
-                  <span className="text-[11px] uppercase tracking-[0.18em] text-ink-400">
-                    {SECTORS[ch.audience].nav} · {ch.region}
-                  </span>
-                  <ArrowUpRight size={14} className="text-ink-400 shrink-0" />
-                </span>
-                <span className="block font-serif text-2xl font-semibold text-ink-950 mt-3 leading-snug">
-                  {ch.title}
-                </span>
-                <span className="block mt-2 text-sm text-ink-800/70 leading-relaxed">{ch.theme}</span>
-              </button>
-            ))}
+
+          <div className="grid md:grid-cols-2 gap-8 md:gap-10">
+            {(['development', 'technology'] as const).map((kind) => {
+              const sector = SECTORS[kind];
+              const ch = CHAPTERS.find((c) => c.audience === kind);
+              if (!ch) return null;
+              return (
+                <article key={kind} id={kind} className="scroll-mt-24 space-y-4">
+                  <p className="text-[11px] uppercase tracking-[0.18em] text-ink-400">{sector.eyebrow}</p>
+                  <h3 className="font-serif text-2xl sm:text-3xl font-semibold text-ink-950 tracking-tight">
+                    {sector.title}
+                  </h3>
+                  <p className="text-ink-800/70 text-sm sm:text-base leading-relaxed">{sector.summary}</p>
+                  <button
+                    type="button"
+                    onClick={() => onOpenSector(kind, ch.id)}
+                    className="w-full text-left bg-white border border-ink-200 rounded-2xl px-5 py-6 hover:border-ink-800 hover:bg-ink-50 active:scale-[0.99] transition-[transform,background-color,border-color] duration-150"
+                  >
+                    <span className="flex items-center justify-between gap-3">
+                      <span className="text-[11px] uppercase tracking-[0.18em] text-ink-400">
+                        {ch.shortTitle} · {ch.region}
+                      </span>
+                      <ArrowUpRight size={14} className="text-ink-400 shrink-0" />
+                    </span>
+                    <span className="block font-serif text-xl font-semibold text-ink-950 mt-3 leading-snug">
+                      {ch.title}
+                    </span>
+                    <span className="block mt-2 text-sm text-ink-800/70 leading-relaxed">{ch.theme}</span>
+                  </button>
+                </article>
+              );
+            })}
           </div>
-          <p className="mt-8 max-w-2xl text-sm text-ink-500 leading-relaxed">
-            Health, malaria, and other programmes start from Create — a template, then your own
-            record. Enterprise product research stays in the studio.
-          </p>
         </div>
       </section>
 
       {/* ——— Feature scope: essay / deliberation UI ——— */}
-      <section id="features" className="bg-white px-6 sm:px-12 py-16 sm:py-20 border-b border-ink-800/5">
+      <section id="features" className="bg-white px-4 sm:px-12 py-14 sm:py-20 border-b border-ink-800/5">
         <div className="max-w-5xl mx-auto grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
           <div className="space-y-4">
             <p className="text-[11px] uppercase tracking-[0.28em] text-ink-400">What you get</p>
@@ -533,19 +631,16 @@ export const Landing: React.FC<LandingProps> = ({
       </section>
 
       {/* ——— Create: full builder input ——— */}
-      <section id="create" className="bg-white px-6 sm:px-12 py-14 sm:py-18">
+      <section id="create" className="bg-white px-4 sm:px-12 py-12 sm:py-16">
         <div className="max-w-4xl mx-auto space-y-4">
-          <div className="text-center space-y-3 mb-8">
-            <div className="mx-auto w-12 h-12 rounded-2xl bg-ink-900 text-white flex items-center justify-center shadow-sm">
-              <SquarePen size={22} strokeWidth={1.75} />
-            </div>
+          <div className="text-center space-y-1.5 mb-5">
             <p className="text-[11px] uppercase tracking-[0.28em] text-ink-400">Create</p>
-            <h2 className="font-serif text-3xl sm:text-4xl font-semibold text-ink-800">
-              What do you want the record to hold?
+            <h2 className="font-serif text-2xl sm:text-3xl font-semibold text-ink-800">
+              What do you want to learn?
             </h2>
             <p className="text-ink-800/60 text-sm max-w-lg mx-auto">
-              Set domain, audience, region, and tone — same composer as the studio.
-              {!user && ' Sign in only when you hit Compose.'}
+              How a service is used, whether a policy lands, what a community values — we compose the
+              interview.
             </p>
           </div>
 
@@ -569,7 +664,7 @@ export const Landing: React.FC<LandingProps> = ({
       </section>
 
       {/* ——— Participate / public directory ——— */}
-      <section id="participate" className="bg-forest text-white px-6 sm:px-12 py-16 sm:py-20">
+      <section id="participate" className="bg-forest text-white px-4 sm:px-12 py-14 sm:py-20 scroll-mt-24">
         <div className="max-w-4xl mx-auto space-y-8">
           <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
             <div className="space-y-3">
@@ -703,7 +798,7 @@ export const Landing: React.FC<LandingProps> = ({
         </div>
       </section>
 
-      <footer className="bg-ink-950 text-white/40 text-xs text-center py-8 px-6">
+      <footer className="bg-ink-950 text-white/40 text-xs text-center py-8 px-4 pb-[max(2rem,env(safe-area-inset-bottom))]">
         {BRAND_NAME} · {BRAND_DOMAIN}
         <span className="mx-2">·</span>
         <a href="#government" className="hover:text-white/70">
