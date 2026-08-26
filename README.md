@@ -2,26 +2,41 @@
 
 Four civic tools in one place: deliberative polling, community survey, active elicitation, and a civic bridge.
 
-## Precinct for Government
+## Sectors
 
-Departmental demonstration for South African partners. Lead file for DPWI ([publicworks.gov.za](http://publicworks.gov.za/)). Synthetic pilots — not official statistics.
+Same four jobs. A different civic bridge. Synthetic pilots — not official statistics.
 
-| File | Record | Open |
-|------|--------|------|
-| KZN-PW-2026-01 | Natal Precinct Records — Public Works, KwaZulu-Natal | `?chapter=natal` |
+The file: **Brief** (the prompt) → **Instrument** (composed questions + model interviews) → **Deliberate** → **Record**.
 
-Index: `?demo=government` (`?demo=publicworks` still works)
+### Precinct for Government
 
-The file: **Brief** (the prompt) → **Instrument** (composed questions + model interviews) → **Deliberate** → **Record** (filled consensus page). Climate and AI are not part of this briefing.
-
-### Experimental examples
-
-Same idea as the tech-conference template in the builder — not the Public Works demo.
+Departmental demonstration for South African partners. Lead file for DPWI ([publicworks.gov.za](http://publicworks.gov.za/)).
 
 | File | Record | Open |
 |------|--------|------|
-| EC-CR-2026-02 | Cape Precinct Records — Climate Resilience, Eastern Cape | `?demo=climate` or `?chapter=cape` |
-| KE-AI-2026-03 | Kenya Records — AI and Views | `?demo=ai` or `?chapter=kenya` |
+| KZN-PW-2026-01 | Natal Precinct Records — Public Works, KwaZulu-Natal | `?demo=government&chapter=natal` |
+
+Index: `/government` (`?demo=government` and `?demo=publicworks` still work)
+
+### Precinct for Development
+
+Climate, health, livelihoods, and community programmes. Health (e.g. malaria) starts from a Create template until it has a named file.
+
+| File | Record | Open |
+|------|--------|------|
+| EC-CR-2026-02 | Cape Precinct Records — Climate Resilience, Eastern Cape | `?demo=development&chapter=cape` |
+
+Index: `/development` (`?demo=development` and `?demo=climate` still work)
+
+### Precinct for Technology
+
+How people meet tools — views, trust, and governance of AI and digital services.
+
+| File | Record | Open |
+|------|--------|------|
+| KE-AI-2026-03 | Kenya Records — AI and Views | `?demo=technology&chapter=kenya` |
+
+Index: `/technology` (`?demo=technology` and `?demo=ai` still work)
 
 ## Running the app 
 

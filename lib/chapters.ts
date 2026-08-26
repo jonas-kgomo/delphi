@@ -862,6 +862,15 @@ export const parseDemoParam = (value: string | null): DemoKind | null => {
   return null;
 };
 
+/** Path aliases so `/government` can carry its own OG HTML at build. */
+export const parsePathKind = (pathname: string): DemoKind | null => {
+  const p = pathname.replace(/\/+$/, '') || '/';
+  if (p === '/government' || p === '/publicworks') return 'government';
+  if (p === '/development' || p === '/climate') return 'development';
+  if (p === '/technology' || p === '/ai') return 'technology';
+  return null;
+};
+
 export const demoKindForChapter = (id: ChapterId): DemoKind => CHAPTER_BY_ID[id].audience;
 
 export const belongsToKind = (id: ChapterId, kind: DemoKind) => demoKindForChapter(id) === kind;

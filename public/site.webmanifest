@@ -1,0 +1,13 @@
+{
+  "name": "The Precinct",
+  "short_name": "Precinct",
+  "description": "A living archive of conversations.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#F1F6EF",
+  "theme_color": "#C5502D",
+  "icons": [
+    { "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml" },
+    { "src": "/og/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
+  ]
+}

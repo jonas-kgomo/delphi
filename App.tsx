@@ -18,9 +18,11 @@ import {
   demoKindForChapter,
   isChapterId,
   parseDemoParam,
+  parsePathKind,
   type ChapterId,
   type DemoKind,
 } from './lib/chapters';
+import { applyPageMeta, seoForView } from './lib/seo';
 import { DEFAULT_AI_MODEL } from './models';
 import {
   captureGoogleCredential,
@@ -117,25 +119,41 @@ export default function App() {
       setView('CHAPTERS');
       return;
     }
-    const kind = parseDemoParam(demo);
+    const kind = parseDemoParam(demo) ?? parsePathKind(window.location.pathname);
     if (kind) {
       setChapterId(null);
       setDemoKind(kind);
       setView('CHAPTERS');
+      return;
     }
+    setChapterId(null);
+    setView('LANDING');
   };
 
-  // --- URL Routing: ?respond= | ?vote= | ?chapter= | ?demo=government | development | technology ---
+  // --- URL Routing: /government | ?respond= | ?vote= | ?chapter= | ?demo= ---
   useEffect(() => {
     applyLocation();
     window.addEventListener('popstate', applyLocation);
     return () => window.removeEventListener('popstate', applyLocation);
   }, []);
 
+  useEffect(() => {
+    applyPageMeta(
+      seoForView({
+        view,
+        demoKind,
+        chapterId,
+        surveyTitle: currentSurvey?.title,
+        pathname: window.location.pathname,
+        search: window.location.search,
+      })
+    );
+  }, [view, demoKind, chapterId, currentSurvey?.title]);
+
   const openDemo = (kind: DemoKind, id: ChapterId | null = null) => {
     const url = new URL(window.location.href);
+    url.pathname = `/${kind}`;
     url.search = '';
-    url.searchParams.set('demo', kind);
     if (id) url.searchParams.set('chapter', id);
     window.history.pushState({}, '', url);
     setDemoKind(kind);
@@ -149,8 +167,8 @@ export default function App() {
 
   const closeChapters = () => {
     const url = new URL(window.location.href);
-    url.searchParams.delete('chapter');
-    url.searchParams.delete('demo');
+    url.pathname = '/';
+    url.search = '';
     window.history.pushState({}, '', url.pathname + url.hash);
     setChapterId(null);
     setView('LANDING');
@@ -676,7 +694,7 @@ export default function App() {
             setView('DASHBOARD');
           }}
           onSignOut={handleSignOut}
-          onOpenSector={(kind) => openDemo(kind, null)}
+          onOpenSector={(kind, id) => openDemo(kind, id ?? null)}
         />
       </GoogleOAuthProvider>
     );

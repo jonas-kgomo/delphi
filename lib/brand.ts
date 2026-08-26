@@ -3,6 +3,10 @@ export const BRAND_NAME = 'The Precinct';
 export const BRAND_SHORT = 'Precinct';
 export const BRAND_DOMAIN = 'precinct.city';
 
+/** What the name means — do not assume the reader knows “precinct”. */
+export const PRECINCT_BLURB =
+  'A precinct is a small territory with a shared stake — a ward, a clinic catchment, a workplace. The Precinct is that place for a conversation: one living archive, not a form that disappears into a dashboard.';
+
 /** Four jobs of one civic place — not a sequence */
 export const PRECINCT_FUNCTIONS = [
   {

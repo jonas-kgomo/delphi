@@ -17,9 +17,27 @@ AI-powered interviews that feel like conversations, not forms. The Precinct repl
 |--------|---------|---------|
 | **Natal Precinct Records** | Infrastructure feedback & service delivery sentiment (KZN) | DPWI — [publicworks.gov.za](http://publicworks.gov.za/) |
 
-Demo: `?demo=government`
+Demo: `/government`
 
-Climate and AI are experimental examples (same idea as a conference template), not the departmental briefing: `?demo=climate`, `?demo=ai`.
+### Precinct for Development
+
+Climate, health, livelihoods, and community programmes. Civil society and NGOs sit here.
+
+| Record | Mandate |
+|--------|---------|
+| **Cape Precinct Records** | Community climate observation & adaptation (Eastern Cape) |
+
+Demo: `?demo=development` (`?demo=climate` still works)
+
+### Precinct for Technology
+
+How people meet tools — subjective views on AI, digital services, and tech governance. Enterprise product research stays in Create.
+
+| Record | Mandate |
+|--------|---------|
+| **Kenya Records** | Views on AI in low-resource, culturally rich settings |
+
+Demo: `?demo=technology` (`?demo=ai` still works)
 
 ---
 
