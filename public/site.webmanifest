@@ -1,7 +1,7 @@
 {
   "name": "The Precinct",
   "short_name": "Precinct",
-  "description": "Structured conversations for better decisions.",
+  "description": "The Precinct helps governments, communities, and organisations run structured consultations. Start a conversation.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#F1F6EF",

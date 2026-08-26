@@ -32,7 +32,7 @@ export function patchShareHtml(html: string, page: SeoPage) {
   next = setMeta(next, 'property', 'og:description', page.description);
   next = setMeta(next, 'property', 'og:url', url);
   next = setMeta(next, 'property', 'og:image', image);
-  next = setMeta(next, 'property', 'og:image:alt', page.title);
+  next = setMeta(next, 'property', 'og:image:alt', page.imageAlt ?? page.title);
   next = setMeta(next, 'name', 'twitter:title', page.title);
   next = setMeta(next, 'name', 'twitter:description', page.description);
   next = setMeta(next, 'name', 'twitter:image', image);

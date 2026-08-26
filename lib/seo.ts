@@ -1,17 +1,22 @@
-import { BRAND_DOMAIN, BRAND_NAME } from './brand';
+import { BRAND_DOMAIN, BRAND_NAME, PRECINCT_HERO } from './brand';
 import { CHAPTER_BY_ID, SECTORS, isChapterId, parseDemoParam, parsePathKind, type ChapterId, type DemoKind } from './chapters';
 import type { ViewMode } from '../types';
 
 export const SITE_ORIGIN = `https://${BRAND_DOMAIN}`;
 
+/** 50–60 characters for SERP; includes the brand and the thesis. */
+export const DEFAULT_TITLE = `${BRAND_NAME} · ${PRECINCT_HERO.title}`;
+
+/** ~125 characters so social previews do not truncate on mobile. */
 export const DEFAULT_DESCRIPTION =
-  'Structured conversations for better decisions. The Precinct helps governments, communities, and organisations run thoughtful consultations and deliberations.';
+  'The Precinct helps governments, communities, and organisations run structured consultations. Start a conversation.';
 
 export type SeoPage = {
   title: string;
   description: string;
   image: string;
   path: string;
+  imageAlt?: string;
 };
 
 const OG = {
@@ -24,10 +29,11 @@ const OG = {
 } as const;
 
 const HOME: SeoPage = {
-  title: `${BRAND_NAME} · ${BRAND_DOMAIN}`,
+  title: DEFAULT_TITLE,
   description: DEFAULT_DESCRIPTION,
   image: OG.home,
   path: '/',
+  imageAlt: `${PRECINCT_HERO.title}. Start a conversation on ${BRAND_NAME}.`,
 };
 
 export function seoFromSearch(search: string): SeoPage {
@@ -155,7 +161,7 @@ export function applyPageMeta(page: SeoPage, origin = typeof window !== 'undefin
     ['property', 'og:description', page.description],
     ['property', 'og:url', url],
     ['property', 'og:image', image],
-    ['property', 'og:image:alt', page.title],
+    ['property', 'og:image:alt', page.imageAlt ?? page.title],
     ['name', 'twitter:title', page.title],
     ['name', 'twitter:description', page.description],
     ['name', 'twitter:image', image],
